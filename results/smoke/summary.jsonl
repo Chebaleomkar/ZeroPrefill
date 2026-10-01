@@ -1,0 +1,2 @@
+{"event": "saved", "request_id": "chatcmpl-92829494140be2b7-89841b21", "prompt_tokens": 16031, "segments_total": 16, "segments_emitted": 16, "segment_dirs_on_disk": 17, "cache_files": 1537}
+{"event": "saved", "request_id": "chatcmpl-8eb9b4201b200d48-87d99e39", "prompt_tokens": 16031, "segments_total": 0, "segments_emitted": 0, "segment_dirs_on_disk": 17, "cache_files": 1537}

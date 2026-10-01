@@ -1,0 +1,105 @@
+{
+  "save": {
+    "text": "This scheduler code manages the Key-Value (KV) cache for deep learning models, particularly those with multiple KV cache groups. It coordinates block allocation, caching, and eviction for efficient memory usage during inference, supporting various attention mechanisms like full attention, sliding window, and Mamba (linear attention).",
+    "ttft_s": 107.18209791183472,
+    "total_s": 113.38482880592346,
+    "energy_j": 14567.387,
+    "usage": {
+      "completion_tokens": 60,
+      "prompt_tokens": 16031,
+      "total_tokens": 16091,
+      "completion_tokens_details": null,
+      "prompt_tokens_details": null
+    },
+    "server": {
+      "vllm:prefix_cache_queries_total": 16031.0,
+      "vllm:prefix_cache_hits_total": 0.0,
+      "vllm:prompt_tokens_total": 16031.0,
+      "vllm:request_prefill_time_seconds_sum": 106.49862634199997
+    }
+  },
+  "cache_mib": 3003.130453109741,
+  "cache_files": 1536,
+  "warm": {
+    "text": "This scheduler code manages the Key-Value (KV) cache for deep learning models, particularly those with multiple KV cache groups. It coordinates block allocation, caching, and eviction for efficient memory usage during inference, supporting various attention mechanisms like full attention, sliding window, and Mamba (linear attention).",
+    "ttft_s": 1.6021997928619385,
+    "total_s": 7.311764717102051,
+    "energy_j": 850.781,
+    "usage": {
+      "completion_tokens": 60,
+      "prompt_tokens": 16031,
+      "total_tokens": 16091,
+      "completion_tokens_details": null,
+      "prompt_tokens_details": null
+    },
+    "server": {
+      "vllm:prefix_cache_queries_total": 16031.0,
+      "vllm:prefix_cache_hits_total": 0.0,
+      "vllm:prompt_tokens_total": 16031.0,
+      "vllm:request_prefill_time_seconds_sum": 1.4581146429999308
+    }
+  },
+  "zp_hit": [
+    "(EngineCore pid=661) [ZP] ZP_HIT tokens=16016 of 16031 (99.9%)"
+  ],
+  "zp_saved": [
+    "(EngineCore pid=211) [ZP] ZP_SAVED {\"event\": \"saved\", \"request_id\": \"chatcmpl-92829494140be2b7-89841b21\", \"prompt_tokens\": 16031, \"segments_total\": 16, \"segments_emitted\": 16, \"segment_dirs_on_disk\": 17, \"cache_files\": 1537}"
+  ],
+  "zp_warnings": [],
+  "cold1": {
+    "text": "This scheduler code manages the Key-Value (KV) cache for deep learning models, particularly those with multiple KV cache groups. It coordinates block allocation, caching, and eviction for efficient memory usage during inference, supporting various attention mechanisms like full attention, sliding window, and Mamba (linear attention).",
+    "ttft_s": 102.59965181350708,
+    "total_s": 108.3283998966217,
+    "energy_j": 14348.872,
+    "usage": {
+      "completion_tokens": 60,
+      "prompt_tokens": 16031,
+      "total_tokens": 16091,
+      "completion_tokens_details": null,
+      "prompt_tokens_details": null
+    },
+    "server": {
+      "vllm:prefix_cache_queries_total": 0.0,
+      "vllm:prefix_cache_hits_total": 0.0,
+      "vllm:prompt_tokens_total": 16031.0,
+      "vllm:request_prefill_time_seconds_sum": 102.4574613499999
+    }
+  },
+  "cold2": {
+    "text": "This scheduler code manages the Key-Value (KV) cache for deep learning models, particularly those with multiple KV cache groups. It coordinates block allocation, caching, and eviction for efficient memory usage during inference, supporting various attention mechanisms like full attention, sliding window, and Mamba (linear attention).",
+    "ttft_s": 103.09423542022705,
+    "total_s": 108.93939137458801,
+    "energy_j": 14492.244,
+    "usage": {
+      "completion_tokens": 60,
+      "prompt_tokens": 16031,
+      "total_tokens": 16091,
+      "completion_tokens_details": null,
+      "prompt_tokens_details": null
+    },
+    "server": {
+      "vllm:prefix_cache_queries_total": 0.0,
+      "vllm:prefix_cache_hits_total": 0.0,
+      "vllm:prompt_tokens_total": 16031.0,
+      "vllm:request_prefill_time_seconds_sum": 102.97610174400006
+    }
+  },
+  "cold_deterministic": true,
+  "warm_equals_cold": true,
+  "save_equals_cold": true,
+  "prompt_tokens": 16031,
+  "pi_reply": {
+    "s": 2.75557804107666,
+    "out": "PI-OK\n"
+  },
+  "pi_tool": {
+    "s": 4.491873264312744,
+    "out": "The bash command executed successfully and printed `TOOL-OK`.\n"
+  },
+  "pi_server_metrics": {
+    "vllm:prefix_cache_queries_total": 4323.0,
+    "vllm:prefix_cache_hits_total": 2832.0,
+    "vllm:prompt_tokens_total": 4323.0,
+    "vllm:request_prefill_time_seconds_sum": 2.2137306659999467
+  }
+}

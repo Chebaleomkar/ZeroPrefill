@@ -1,0 +1,8 @@
+{"event": "saved", "request_id": "chatcmpl-b05199fffff6a0f3-a73fcab6", "prompt_tokens": 1430, "segments_total": 2, "segments_emitted": 2, "segment_dirs_on_disk": 3, "cache_files": 193}
+{"event": "saved", "request_id": "chatcmpl-952eb7380d63747f-8b62dcdb", "prompt_tokens": 11287, "segments_total": 12, "segments_emitted": 12, "segment_dirs_on_disk": 14, "cache_files": 1249}
+{"event": "saved", "request_id": "chatcmpl-8e364edbcecad9d7-8bf313c6", "prompt_tokens": 12339, "segments_total": 13, "segments_emitted": 13, "segment_dirs_on_disk": 16, "cache_files": 1441}
+{"event": "saved", "request_id": "chatcmpl-bddda46242882210-9b0f611d", "prompt_tokens": 13652, "segments_total": 14, "segments_emitted": 14, "segment_dirs_on_disk": 18, "cache_files": 1633}
+{"event": "saved", "request_id": "chatcmpl-9ca762db8e724766-bea77be9", "prompt_tokens": 17781, "segments_total": 18, "segments_emitted": 18, "segment_dirs_on_disk": 23, "cache_files": 2113}
+{"event": "saved", "request_id": "chatcmpl-adafcec8d33b3393-82476e3b", "prompt_tokens": 19816, "segments_total": 20, "segments_emitted": 20, "segment_dirs_on_disk": 26, "cache_files": 2401}
+{"event": "saved", "request_id": "chatcmpl-8fd100669dd6a0a2-a4425721", "prompt_tokens": 20555, "segments_total": 21, "segments_emitted": 21, "segment_dirs_on_disk": 28, "cache_files": 2593}
+{"event": "saved", "request_id": "chatcmpl-90e6a3633a70704c-80e7f25e", "prompt_tokens": 23699, "segments_total": 24, "segments_emitted": 24, "segment_dirs_on_disk": 32, "cache_files": 2977}
