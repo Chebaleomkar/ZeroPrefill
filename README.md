@@ -1,5 +1,9 @@
 # ZeroPrefill
 
+**TL;DR.** A vLLM KV connector plugin (vLLM itself unpatched) that saves a session's KV cache to disk and restores it into a fresh server, so the model skips re-prefill.
+On Qwen2.5-14B-Instruct-AWQ on 2x T4: a 16,031-token prompt went from 102.6 s to **1.60 s** time to first token (64x) with identical output, and a real 26,788-token coding-agent session resumed on a different machine went from 260.7 s to **75.7 s / 73.7 s** (3.5x) with 46% less GPU energy.
+The mechanism is not new ([related work](#related-work)); the contribution is the measurement. Read the [caveats](#results-so-far) before quoting the numbers.
+
 Save an LLM session's KV cache to disk when it goes idle, and load it straight
 back into GPU memory when the user returns, so the model does not have to
 re-read (prefill) the whole conversation.
@@ -176,3 +180,7 @@ Recompute?". Providers ship versions of it too: DeepSeek's disk cache,
 Anthropic's 1-hour cache, OpenAI's extended retention. Our contribution so far
 is measurement: real agent sessions resumed across machines, with energy, and
 the practical failure modes found along the way.
+
+## License
+
+Apache-2.0. See [LICENSE](LICENSE).
