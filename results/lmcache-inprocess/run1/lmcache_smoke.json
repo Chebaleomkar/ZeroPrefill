@@ -1,0 +1,143 @@
+{
+  "lmcache": "lmcache==0.5.6",
+  "chunk_size": 256,
+  "save": {
+    "text": "This scheduler code manages the Key-Value (KV) cache for deep learning models, particularly those with multiple KV cache groups. It coordinates block allocation, caching, and eviction for efficient memory usage during inference, supporting various attention mechanisms like full attention, sliding window, and Mamba (linear attention).",
+    "ttft_s": 102.33978581428528,
+    "total_s": 108.3033516407013,
+    "energy_j": 14081.697,
+    "usage": {
+      "completion_tokens": 60,
+      "prompt_tokens": 16031,
+      "total_tokens": 16091,
+      "completion_tokens_details": null,
+      "prompt_tokens_details": null
+    },
+    "server": {
+      "vllm:prefix_cache_queries_total": 16031.0,
+      "vllm:prefix_cache_hits_total": 0.0,
+      "vllm:prompt_tokens_total": 16031.0,
+      "vllm:request_prefill_time_seconds_sum": 100.99020396800006
+    }
+  },
+  "cache_files": 124,
+  "cache_mib": 2976.0,
+  "warm": {
+    "text": "",
+    "ttft_s": null,
+    "total_s": 13.844290733337402,
+    "energy_j": 950.656,
+    "usage": {
+      "completion_tokens": 0,
+      "prompt_tokens": 16031,
+      "total_tokens": 16031,
+      "completion_tokens_details": null,
+      "prompt_tokens_details": null
+    },
+    "server": {
+      "vllm:prefix_cache_queries_total": 16031.0,
+      "vllm:prefix_cache_hits_total": 0.0,
+      "vllm:prompt_tokens_total": 0.0,
+      "vllm:request_prefill_time_seconds_sum": 13.724514059000057
+    }
+  },
+  "lmc_hit": [
+    "(EngineCore pid=664) \u001b[32;20m[2026-11-17 09:58:25,310] LMCache INFO:\u001b[0m Reqid: chatcmpl-a060b0c736c973b8-bc66771e, Total tokens 16031, Inference Engine computed tokens: 0, LMCache hit tokens: 15872, need to load: 15872 \u001b[3m(vllm_v1_adapter.py:1476:lmcache.integration.vllm.vllm_v1_adapter)\u001b[0m"
+  ],
+  "lmc_retrieved": [
+    "(Worker_TP1 pid=697) \u001b[32;20m[2026-11-17 09:58:36,133] LMCache INFO:\u001b[0m [req_id=chatcmpl-a060b0c736c973b8-bc66771e] Retrieved 0 out of 15872 required tokens (from 15872 total tokens). size: 0.0000 gb, cost 10523.8918 ms, throughput: 0.0000 GB/s; \u001b[3m(cache_engine.py:985:lmcache.v1.cache_engine)\u001b[0m",
+    "(Worker_TP0 pid=696) \u001b[32;20m[2026-11-17 09:58:36,910] LMCache INFO:\u001b[0m [req_id=chatcmpl-a060b0c736c973b8-bc66771e] Retrieved 15872 out of 15872 required tokens (from 15872 total tokens). size: 1.4531 gb, cost 11584.9977 ms, throughput: 0.1254 GB/s; \u001b[3m(cache_engine.py:985:lmcache.v1.cache_engine)\u001b[0m"
+  ],
+  "lmc_errors": [
+    "(Worker_TP1 pid=697) \u001b[31;20m[2026-11-17 09:58:36,424] LMCache ERROR:\u001b[0m Request chatcmpl-a060b0c736c973b8-bc66771eThe number of retrieved tokens is less than the expected number of tokens! This should not happen! \u001b[3m(vllm_v1_adapter.py:876:lmcache.integration.vllm.vllm_v1_adapter)\u001b[0m",
+    "(Worker_TP1 pid=697) \u001b[31;20m[2026-11-17 09:58:36,424] LMCache ERROR:\u001b[0m Num retrieved tokens: 0, num expected tokens: 15872 \u001b[3m(vllm_v1_adapter.py:882:lmcache.integration.vllm.vllm_v1_adapter)\u001b[0m"
+  ],
+  "disk_save": {
+    "text": "This scheduler code manages the Key-Value (KV) cache for deep learning models, particularly those with multiple KV cache groups. It coordinates block allocation, caching, and eviction for efficient memory usage during inference, supporting various attention mechanisms like full attention, sliding window, and Mamba (linear attention).",
+    "ttft_s": 100.59199905395508,
+    "total_s": 106.24641060829163,
+    "energy_j": 14107.063,
+    "usage": {
+      "completion_tokens": 60,
+      "prompt_tokens": 16031,
+      "total_tokens": 16091,
+      "completion_tokens_details": null,
+      "prompt_tokens_details": null
+    },
+    "server": {
+      "vllm:prefix_cache_queries_total": 16031.0,
+      "vllm:prefix_cache_hits_total": 0.0,
+      "vllm:prompt_tokens_total": 16031.0,
+      "vllm:request_prefill_time_seconds_sum": 100.40849112300009
+    }
+  },
+  "disk_cache_files": 124,
+  "disk_cache_mib": 2976.0,
+  "disk_warm": {
+    "text": "This scheduler code manages the Key-Value (KV) cache for deep learning models, particularly those with multiple KV cache groups. It coordinates block allocation, caching, and eviction for efficient memory usage during inference, supporting various attention mechanisms like full attention, sliding window, and Mamba (linear attention).",
+    "ttft_s": 100.74168968200684,
+    "total_s": 106.70923352241516,
+    "energy_j": 14156.495,
+    "usage": {
+      "completion_tokens": 60,
+      "prompt_tokens": 16031,
+      "total_tokens": 16091,
+      "completion_tokens_details": null,
+      "prompt_tokens_details": null
+    },
+    "server": {
+      "vllm:prefix_cache_queries_total": 16031.0,
+      "vllm:prefix_cache_hits_total": 0.0,
+      "vllm:prompt_tokens_total": 16031.0,
+      "vllm:request_prefill_time_seconds_sum": 100.49588810699993
+    }
+  },
+  "disk_lmc_hit": [
+    "(EngineCore pid=1343) \u001b[32;20m[2026-11-17 10:04:05,741] LMCache INFO:\u001b[0m Reqid: chatcmpl-8135619037aaea08-a8cb7189, Total tokens 16031, Inference Engine computed tokens: 0, LMCache hit tokens: 0, need to load: 0 \u001b[3m(vllm_v1_adapter.py:1476:lmcache.integration.vllm.vllm_v1_adapter)\u001b[0m"
+  ],
+  "disk_lmc_retrieved": [],
+  "disk_lmc_errors": [],
+  "cold1": {
+    "text": "This scheduler code manages the Key-Value (KV) cache for deep learning models, particularly those with multiple KV cache groups. It coordinates block allocation, caching, and eviction for efficient memory usage during inference, supporting various attention mechanisms like full attention, sliding window, and Mamba (linear attention).",
+    "ttft_s": 100.22041034698486,
+    "total_s": 105.81262707710266,
+    "energy_j": 14092.745,
+    "usage": {
+      "completion_tokens": 60,
+      "prompt_tokens": 16031,
+      "total_tokens": 16091,
+      "completion_tokens_details": null,
+      "prompt_tokens_details": null
+    },
+    "server": {
+      "vllm:prefix_cache_queries_total": 0.0,
+      "vllm:prefix_cache_hits_total": 0.0,
+      "vllm:prompt_tokens_total": 16031.0,
+      "vllm:request_prefill_time_seconds_sum": 100.08625172699999
+    }
+  },
+  "cold2": {
+    "text": "This scheduler code manages the Key-Value (KV) cache for deep learning models, particularly those with multiple KV cache groups. It coordinates block allocation, caching, and eviction for efficient memory usage during inference, supporting various attention mechanisms like full attention, sliding window, and Mamba (linear attention).",
+    "ttft_s": 100.20527505874634,
+    "total_s": 105.75819420814514,
+    "energy_j": 14137.043,
+    "usage": {
+      "completion_tokens": 60,
+      "prompt_tokens": 16031,
+      "total_tokens": 16091,
+      "completion_tokens_details": null,
+      "prompt_tokens_details": null
+    },
+    "server": {
+      "vllm:prefix_cache_queries_total": 0.0,
+      "vllm:prefix_cache_hits_total": 0.0,
+      "vllm:prompt_tokens_total": 16031.0,
+      "vllm:request_prefill_time_seconds_sum": 100.08486819399991
+    }
+  },
+  "cold_deterministic": true,
+  "warm_equals_cold": false,
+  "save_equals_cold": true,
+  "disk_warm_equals_cold": true,
+  "prompt_tokens": 16031
+}

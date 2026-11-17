@@ -1,0 +1,156 @@
+{
+  "lmcache": "lmcache==0.5.6",
+  "mode": "mp",
+  "l2": "fs",
+  "save": {
+    "text": "This scheduler code manages the Key-Value (KV) cache for deep learning models, particularly those with multiple KV cache groups. It coordinates block allocation, caching, and eviction for efficient memory usage during inference, supporting various attention mechanisms like full attention, sliding window, and Mamba (linear attention).",
+    "ttft_s": 104.58514451980591,
+    "total_s": 110.82109928131104,
+    "energy_j": 14590.007,
+    "usage": {
+      "completion_tokens": 60,
+      "prompt_tokens": 16031,
+      "total_tokens": 16091,
+      "completion_tokens_details": null,
+      "prompt_tokens_details": null
+    },
+    "server": {
+      "vllm:prefix_cache_queries_total": 16031.0,
+      "vllm:prefix_cache_hits_total": 0.0,
+      "vllm:prompt_tokens_total": 16031.0,
+      "vllm:request_prefill_time_seconds_sum": 103.14836786000001
+    }
+  },
+  "l2_files": 124,
+  "l2_mib": 2976.0,
+  "save_log": [
+    "(Worker_TP1 pid=249) \u001b[32;20m[2026-11-17 12:31:10,831] LMCache INFO:\u001b[0m lmcache.mp.nonblocking_lookup_status = True \u001b[3m(vllm_multi_process_adapter.py:229:lmcache.integration.vllm.vllm_multi_process_adapter)\u001b[0m",
+    "(Worker_TP0 pid=248) \u001b[32;20m[2026-11-17 12:31:10,907] LMCache INFO:\u001b[0m lmcache.mp.nonblocking_lookup_status = True \u001b[3m(vllm_multi_process_adapter.py:229:lmcache.integration.vllm.vllm_multi_process_adapter)\u001b[0m",
+    "(EngineCore pid=216) \u001b[32;20m[2026-11-17 12:31:41,207] LMCache INFO:\u001b[0m lmcache.mp.nonblocking_lookup_status = True \u001b[3m(vllm_multi_process_adapter.py:229:lmcache.integration.vllm.vllm_multi_process_adapter)\u001b[0m",
+    "\u001b[32;20m[2026-11-17 12:28:13,387] LMCache INFO:\u001b[0m Initialized FSL2Adapter with base_path=/root/lmc-l2, relative_tmp_dir=None, read_ahead_size=None, use_odirect=False \u001b[3m(fs_l2_adapter.py:304:lmcache.v1.distributed.l2_adapters.fs_l2_adapter)\u001b[0m",
+    "\u001b[32;20m[2026-11-17 12:28:13,388] LMCache INFO:\u001b[0m Starting L2EvictionController... \u001b[3m(eviction_controller.py:250:lmcache.v1.distributed.storage_controllers.eviction_controller)\u001b[0m",
+    "\u001b[32;20m[2026-11-17 12:28:13,395] LMCache INFO:\u001b[0m Starting PrefetchController... \u001b[3m(prefetch_controller.py:739:lmcache.v1.distributed.storage_controllers.prefetch_controller)\u001b[0m",
+    "\u001b[32;20m[2026-11-17 12:28:13,414] LMCache INFO:\u001b[0m Initializing L2 connector usage reporting. \u001b[3m(l2_usage.py:243:lmcache.usage_telemetry.l2_usage)\u001b[0m",
+    "\u001b[32;20m[2026-11-17 12:28:13,415] LMCache INFO:\u001b[0m Started PeriodicThread: lmcache-usage-l2 (level=low, interval=600.0s, init_wait=600.0s) \u001b[3m(periodic_thread.py:248:lmcache.v1.periodic_thread)\u001b[0m",
+    "\u001b[31;20m[2026-11-17 12:33:57,669] LMCache ERROR:\u001b[0m Error handling operation unregister_kv_cache \u001b[3m(mq.py:798:lmcache.v1.multiprocess.transport.zmq_impl.mq)\u001b[0m",
+    "\u001b[32;20m[2026-11-17 12:34:02,536] LMCache INFO:\u001b[0m Stopping PeriodicThread: lmcache-usage-l2 \u001b[3m(periodic_thread.py:267:lmcache.v1.periodic_thread)\u001b[0m",
+    "\u001b[32;20m[2026-11-17 12:34:02,536] LMCache INFO:\u001b[0m PeriodicThread lmcache-usage-l2 stopped during init_wait \u001b[3m(periodic_thread.py:298:lmcache.v1.periodic_thread)\u001b[0m",
+    "\u001b[32;20m[2026-11-17 12:34:04,455] LMCache INFO:\u001b[0m FSL2Adapter closed \u001b[3m(fs_l2_adapter.py:487:lmcache.v1.distributed.l2_adapters.fs_l2_adapter)\u001b[0m"
+  ],
+  "warm": {
+    "text": "This scheduler code manages the Key-Value (KV) cache for deep learning models, particularly those with multiple KV cache groups. It coordinates block allocation, caching, and eviction for efficient memory usage during inference, supporting various attention mechanisms like full attention, sliding window, and Mamba (linear attention).",
+    "ttft_s": 15.106324195861816,
+    "total_s": 20.986376523971558,
+    "energy_j": 1838.657,
+    "usage": {
+      "completion_tokens": 60,
+      "prompt_tokens": 16031,
+      "total_tokens": 16091,
+      "completion_tokens_details": null,
+      "prompt_tokens_details": null
+    },
+    "server": {
+      "vllm:prefix_cache_queries_total": 16031.0,
+      "vllm:prefix_cache_hits_total": 0.0,
+      "vllm:prompt_tokens_total": 16031.0,
+      "vllm:request_prefill_time_seconds_sum": 2.080443857999967
+    }
+  },
+  "warm_log": [
+    "(Worker_TP1 pid=742) \u001b[32;20m[2026-11-17 12:36:08,519] LMCache INFO:\u001b[0m lmcache.mp.nonblocking_lookup_status = True \u001b[3m(vllm_multi_process_adapter.py:229:lmcache.integration.vllm.vllm_multi_process_adapter)\u001b[0m",
+    "(Worker_TP0 pid=741) \u001b[32;20m[2026-11-17 12:36:08,744] LMCache INFO:\u001b[0m lmcache.mp.nonblocking_lookup_status = True \u001b[3m(vllm_multi_process_adapter.py:229:lmcache.integration.vllm.vllm_multi_process_adapter)\u001b[0m",
+    "(EngineCore pid=709) \u001b[32;20m[2026-11-17 12:36:12,825] LMCache INFO:\u001b[0m lmcache.mp.nonblocking_lookup_status = True \u001b[3m(vllm_multi_process_adapter.py:229:lmcache.integration.vllm.vllm_multi_process_adapter)\u001b[0m",
+    "(APIServer pid=661) INFO 11-17 12:36:35 [metrics.py:107] KV Transfer metrics: LMCache MP lookup count=1, LMCache MP lookup avg latency (ms)=12604.846",
+    "\u001b[32;20m[2026-11-17 12:34:28,133] LMCache INFO:\u001b[0m Initialized FSL2Adapter with base_path=/root/lmc-l2, relative_tmp_dir=None, read_ahead_size=None, use_odirect=False \u001b[3m(fs_l2_adapter.py:304:lmcache.v1.distributed.l2_adapters.fs_l2_adapter)\u001b[0m",
+    "\u001b[32;20m[2026-11-17 12:34:28,134] LMCache INFO:\u001b[0m Starting L2EvictionController... \u001b[3m(eviction_controller.py:250:lmcache.v1.distributed.storage_controllers.eviction_controller)\u001b[0m",
+    "\u001b[32;20m[2026-11-17 12:34:28,141] LMCache INFO:\u001b[0m Starting PrefetchController... \u001b[3m(prefetch_controller.py:739:lmcache.v1.distributed.storage_controllers.prefetch_controller)\u001b[0m",
+    "\u001b[32;20m[2026-11-17 12:34:28,152] LMCache INFO:\u001b[0m Initializing L2 connector usage reporting. \u001b[3m(l2_usage.py:243:lmcache.usage_telemetry.l2_usage)\u001b[0m",
+    "\u001b[32;20m[2026-11-17 12:34:28,152] LMCache INFO:\u001b[0m Started PeriodicThread: lmcache-usage-l2 (level=low, interval=600.0s, init_wait=600.0s) \u001b[3m(periodic_thread.py:248:lmcache.v1.periodic_thread)\u001b[0m",
+    "\u001b[32;20m[2026-11-17 12:36:32,428] LMCache INFO:\u001b[0m Prefetch request completed (L1+L2): 124/124 retained keys (0 L1, 124 L2) in 12590.6 ms (external_request_id=chatcmpl-95becf6f5f929aee-85013454, prefetch_request_id=0) \u001b[3m(storage_manager.py:651:lmcache.v1.distributed.storage_manager)\u001b[0m",
+    "\u001b[32;20m[2026-11-17 12:36:32,521] LMCache INFO:\u001b[0m Retrieved 15872 tokens in 0.081 seconds \u001b[3m(lmcache_driven_transfer.py:1100:lmcache.v1.multiprocess.modules.lmcache_driven_transfer)\u001b[0m",
+    "\u001b[32;20m[2026-11-17 12:36:32,642] LMCache INFO:\u001b[0m Retrieved 15872 tokens in 0.120 seconds \u001b[3m(lmcache_driven_transfer.py:1100:lmcache.v1.multiprocess.modules.lmcache_driven_transfer)\u001b[0m",
+    "\u001b[31;20m[2026-11-17 12:36:40,753] LMCache ERROR:\u001b[0m Error handling operation unregister_kv_cache \u001b[3m(mq.py:798:lmcache.v1.multiprocess.transport.zmq_impl.mq)\u001b[0m",
+    "\u001b[31;20m[2026-11-17 12:36:40,804] LMCache ERROR:\u001b[0m Error handling operation unregister_kv_cache \u001b[3m(mq.py:798:lmcache.v1.multiprocess.transport.zmq_impl.mq)\u001b[0m"
+  ],
+  "warm_l1": {
+    "text": "This scheduler code manages the Key-Value (KV) cache for deep learning models, particularly those with multiple KV cache groups. It coordinates block allocation, caching, and eviction for efficient memory usage during inference, supporting various attention mechanisms like full attention, sliding window, and Mamba (linear attention).",
+    "ttft_s": 11.965710163116455,
+    "total_s": 18.21321415901184,
+    "energy_j": 1732.647,
+    "usage": {
+      "completion_tokens": 60,
+      "prompt_tokens": 16031,
+      "total_tokens": 16091,
+      "completion_tokens_details": null,
+      "prompt_tokens_details": null
+    },
+    "server": {
+      "vllm:prefix_cache_queries_total": 16031.0,
+      "vllm:prefix_cache_hits_total": 0.0,
+      "vllm:prompt_tokens_total": 16031.0,
+      "vllm:request_prefill_time_seconds_sum": 2.1410189730002003
+    }
+  },
+  "warm_l1_log": [
+    "(Worker_TP0 pid=1044) \u001b[32;20m[2026-11-17 12:38:19,328] LMCache INFO:\u001b[0m lmcache.mp.nonblocking_lookup_status = True \u001b[3m(vllm_multi_process_adapter.py:229:lmcache.integration.vllm.vllm_multi_process_adapter)\u001b[0m",
+    "(Worker_TP1 pid=1045) \u001b[32;20m[2026-11-17 12:38:19,328] LMCache INFO:\u001b[0m lmcache.mp.nonblocking_lookup_status = True \u001b[3m(vllm_multi_process_adapter.py:229:lmcache.integration.vllm.vllm_multi_process_adapter)\u001b[0m",
+    "(EngineCore pid=1012) \u001b[32;20m[2026-11-17 12:38:22,918] LMCache INFO:\u001b[0m lmcache.mp.nonblocking_lookup_status = True \u001b[3m(vllm_multi_process_adapter.py:229:lmcache.integration.vllm.vllm_multi_process_adapter)\u001b[0m",
+    "\u001b[32;20m[2026-11-17 12:34:28,133] LMCache INFO:\u001b[0m Initialized FSL2Adapter with base_path=/root/lmc-l2, relative_tmp_dir=None, read_ahead_size=None, use_odirect=False \u001b[3m(fs_l2_adapter.py:304:lmcache.v1.distributed.l2_adapters.fs_l2_adapter)\u001b[0m",
+    "\u001b[32;20m[2026-11-17 12:34:28,134] LMCache INFO:\u001b[0m Starting L2EvictionController... \u001b[3m(eviction_controller.py:250:lmcache.v1.distributed.storage_controllers.eviction_controller)\u001b[0m",
+    "\u001b[32;20m[2026-11-17 12:34:28,141] LMCache INFO:\u001b[0m Starting PrefetchController... \u001b[3m(prefetch_controller.py:739:lmcache.v1.distributed.storage_controllers.prefetch_controller)\u001b[0m",
+    "\u001b[32;20m[2026-11-17 12:34:28,152] LMCache INFO:\u001b[0m Initializing L2 connector usage reporting. \u001b[3m(l2_usage.py:243:lmcache.usage_telemetry.l2_usage)\u001b[0m",
+    "\u001b[32;20m[2026-11-17 12:34:28,152] LMCache INFO:\u001b[0m Started PeriodicThread: lmcache-usage-l2 (level=low, interval=600.0s, init_wait=600.0s) \u001b[3m(periodic_thread.py:248:lmcache.v1.periodic_thread)\u001b[0m",
+    "\u001b[32;20m[2026-11-17 12:36:32,428] LMCache INFO:\u001b[0m Prefetch request completed (L1+L2): 124/124 retained keys (0 L1, 124 L2) in 12590.6 ms (external_request_id=chatcmpl-95becf6f5f929aee-85013454, prefetch_request_id=0) \u001b[3m(storage_manager.py:651:lmcache.v1.distributed.storage_manager)\u001b[0m",
+    "\u001b[32;20m[2026-11-17 12:36:32,521] LMCache INFO:\u001b[0m Retrieved 15872 tokens in 0.081 seconds \u001b[3m(lmcache_driven_transfer.py:1100:lmcache.v1.multiprocess.modules.lmcache_driven_transfer)\u001b[0m",
+    "\u001b[32;20m[2026-11-17 12:36:32,642] LMCache INFO:\u001b[0m Retrieved 15872 tokens in 0.120 seconds \u001b[3m(lmcache_driven_transfer.py:1100:lmcache.v1.multiprocess.modules.lmcache_driven_transfer)\u001b[0m",
+    "\u001b[31;20m[2026-11-17 12:36:40,753] LMCache ERROR:\u001b[0m Error handling operation unregister_kv_cache \u001b[3m(mq.py:798:lmcache.v1.multiprocess.transport.zmq_impl.mq)\u001b[0m",
+    "\u001b[31;20m[2026-11-17 12:36:40,804] LMCache ERROR:\u001b[0m Error handling operation unregister_kv_cache \u001b[3m(mq.py:798:lmcache.v1.multiprocess.transport.zmq_impl.mq)\u001b[0m",
+    "\u001b[32;20m[2026-11-17 12:38:36,642] LMCache INFO:\u001b[0m Prefetch request completed (L1+L2): 124/124 retained keys (0 L1, 124 L2) in 9393.6 ms (external_request_id=chatcmpl-b1890e77c356fdb8-9c380746, prefetch_request_id=1) \u001b[3m(storage_manager.py:651:lmcache.v1.distributed.storage_manager)\u001b[0m",
+    "\u001b[32;20m[2026-11-17 12:38:36,746] LMCache INFO:\u001b[0m Retrieved 15872 tokens in 0.094 seconds \u001b[3m(lmcache_driven_transfer.py:1100:lmcache.v1.multiprocess.modules.lmcache_driven_transfer)\u001b[0m",
+    "\u001b[32;20m[2026-11-17 12:38:36,851] LMCache INFO:\u001b[0m Retrieved 15872 tokens in 0.105 seconds \u001b[3m(lmcache_driven_transfer.py:1100:lmcache.v1.multiprocess.modules.lmcache_driven_transfer)\u001b[0m",
+    "\u001b[31;20m[2026-11-17 12:38:45,404] LMCache ERROR:\u001b[0m Error handling operation unregister_kv_cache \u001b[3m(mq.py:798:lmcache.v1.multiprocess.transport.zmq_impl.mq)\u001b[0m"
+  ],
+  "cold1": {
+    "text": "This scheduler code manages the Key-Value (KV) cache for deep learning models, particularly those with multiple KV cache groups. It coordinates block allocation, caching, and eviction for efficient memory usage during inference, supporting various attention mechanisms like full attention, sliding window, and Mamba (linear attention).",
+    "ttft_s": 102.74853229522705,
+    "total_s": 108.76342964172363,
+    "energy_j": 14582.888,
+    "usage": {
+      "completion_tokens": 60,
+      "prompt_tokens": 16031,
+      "total_tokens": 16091,
+      "completion_tokens_details": null,
+      "prompt_tokens_details": null
+    },
+    "server": {
+      "vllm:prefix_cache_queries_total": 0.0,
+      "vllm:prefix_cache_hits_total": 0.0,
+      "vllm:prompt_tokens_total": 16031.0,
+      "vllm:request_prefill_time_seconds_sum": 102.61072837100005
+    }
+  },
+  "cold2": {
+    "text": "This scheduler code manages the Key-Value (KV) cache for deep learning models, particularly those with multiple KV cache groups. It coordinates block allocation, caching, and eviction for efficient memory usage during inference, supporting various attention mechanisms like full attention, sliding window, and Mamba (linear attention).",
+    "ttft_s": 102.91954803466797,
+    "total_s": 108.9186897277832,
+    "energy_j": 14631.191,
+    "usage": {
+      "completion_tokens": 60,
+      "prompt_tokens": 16031,
+      "total_tokens": 16091,
+      "completion_tokens_details": null,
+      "prompt_tokens_details": null
+    },
+    "server": {
+      "vllm:prefix_cache_queries_total": 0.0,
+      "vllm:prefix_cache_hits_total": 0.0,
+      "vllm:prompt_tokens_total": 16031.0,
+      "vllm:request_prefill_time_seconds_sum": 102.79498611100007
+    }
+  },
+  "cold_deterministic": true,
+  "save_equals_cold": true,
+  "warm_equals_cold": true,
+  "warm_l1_equals_cold": true,
+  "prompt_tokens": 16031
+}

@@ -2,6 +2,7 @@
 
 **TL;DR.** A vLLM KV connector plugin (vLLM itself unpatched) that saves a session's KV cache to disk and restores it into a fresh server, so the model skips re-prefill.
 On Qwen2.5-14B-Instruct-AWQ on 2x T4: a 16,031-token prompt went from 102.6 s to **1.60 s** time to first token (64x) with identical output, and a real 26,788-token coding-agent session resumed on a different machine went from 260.7 s to **75.7 s / 73.7 s** (3.5x) with 46% less GPU energy.
+Against LMCache's multi-process mode on the same machine, first-token time after restore was 8.55 s / 3.04 s vs 14.96 s / 8.01 s, both with correct output ([comparison](#comparison-with-lmcache)).
 The mechanism is not new ([related work](#related-work)); the contribution is the measurement. Read the [caveats](#results-so-far) before quoting the numbers.
 
 Save an LLM session's KV cache to disk when it goes idle, and load it straight
@@ -82,6 +83,57 @@ difference and it is not yet explained.
 
 Full log with dates and reasoning: [`docs/RESEARCH.md`](docs/RESEARCH.md) §6.
 
+## Comparison with LMCache
+
+Same model, GPUs, vLLM 0.30.0 and 16,031-token smoke prompt; save in one
+server, restore in a fresh one. LMCache 0.5.6.
+
+**In-process connector (`LMCacheConnectorV1`): wrong output.** With the `fs`
+backend the restore loaded all 15,872 tokens on both GPUs without an error, and
+the model answered as if the prompt were garbled ("contains several syntax
+errors") from the first word. vLLM 0.30.0 uses the LBNHC KV cache layout on
+these GPUs, which LMCache issue #6156 reports the in-process connector
+mishandles; it was closed without a fix because in-process mode is deprecated.
+The `local_disk` backend restored 0 tokens after the restart (LMCache issue
+#1175). With LMCache's default 10 s `blocking_timeout_secs`, one GPU's read
+timed out and vLLM failed the request with an empty reply. Raw outputs:
+[`results/lmcache-inprocess/`](results/lmcache-inprocess/).
+
+**Multi-process mode (`LMCacheMPConnector` + `lmcache server`, `fs` L2):
+correct output.** Head to head in one Kaggle session, each tool saved once and
+restored twice, each restore in fresh processes:
+
+| | restore 1 | restore 2 | GPU energy | tokens restored | output |
+|---|---|---|---|---|---|
+| cold prefill (the two save runs) | 105.7 s / 100.3 s | | 14,469 / 14,307 J | 0 | reference |
+| ZeroPrefill | **8.55 s** | **3.04 s** | 1,254 / 940 J | 16,016 | identical |
+| LMCache MP | 14.96 s | 8.01 s | 1,775 / 1,392 J | 15,872 | identical |
+
+Times are time to first token. Where the restore time goes, per GPU:
+
+| | restore 1 | restore 2 |
+|---|---|---|
+| ZeroPrefill: read files / copy into the GPU cache | 1.0 s / 6.8 s | 0.18 s / 2.15 s |
+| LMCache MP: prefetch from disk / copy into the GPU cache | 12.5 s / 0.1 s | 5.5 s / 0.1 s |
+
+Read these with the caveats:
+
+- Kaggle does not allow dropping the OS page cache, and about 30 GB of RAM was
+  free, so both tools most likely read their files from memory rather than
+  disk. These are not disk-speed numbers.
+- Two restores per tool in one session. The first restore is slower for both,
+  probably one-time warm-up; ZeroPrefill's 14.2 s in the answer run above was
+  also a first restore, with 552 tokens to recompute.
+- ZeroPrefill's cost is copying 768 small files per GPU into the paged cache
+  layer by layer; LMCache's is reading its chunk files. Both look improvable.
+- The separate cold server in this run failed to start because GPU memory was
+  not yet free after the last LMCache step, so the save runs (full prefill, no
+  cache hits) are the cold reference.
+
+Raw outputs: [`results/lmcache-mp/`](results/lmcache-mp/) (MP mode alone,
+including a run that kept the LMCache server alive across the vLLM restart:
+12.0 s) and [`results/h2h/`](results/h2h/).
+
 ## How it works
 
 A vLLM `KVConnectorBase_V1` plugin, loaded with `kv_connector_module_path`, so
@@ -159,11 +211,15 @@ kaggle/               the 2x T4 experiments
   lib.py              install vLLM + pi, start/stop server, logging proxy, energy
   smoke.py            run 0: save, restore, compare with cold
   answer.py           turn 2 reuses the saved answer; unit tests on vLLM 0.30
+  lmcache-smoke.py    LMCache in-process connector baseline
+  lmcache-mp.py       LMCache multi-process mode baseline
+  h2h.py              ZeroPrefill vs LMCache MP in one session
+  lmc.py              LMCache MP server helpers
   day1.py             build a real pi session, save its KV cache
   day2.py             resume on a fresh machine, warm vs cold
   push.py             bundle + push as a private Kaggle kernel
 results/              raw outputs of every run (no KV caches)
-  smoke/  day1/  day2/  answer/
+  smoke/  day1/  day2/  answer/  lmcache-inprocess/  lmcache-mp/  h2h/
 tests/                hashing, segments, store path, end-of-session save
 scripts/              phase 1: local GTX 1650 runs under WSL2
 docs/
@@ -192,13 +248,15 @@ docs/
 
 ## Next steps
 
-1. Re-run Day 2 with the end-of-session save, and explain the 14.2 s warm time.
-2. Let a longer prompt reuse the previous save's partial last segment.
-3. Day 1 v2 with Qwen3-14B-AWQ (better tool calling, native 40k) and prompts
+1. Re-run Day 2 with the end-of-session save.
+2. Speed up the copy into the GPU cache (6.8 s / 2.15 s per restore), e.g.
+   fewer, larger files and one batched copy per layer.
+3. Let a longer prompt reuse the previous save's partial last segment.
+4. Day 1 v2 with Qwen3-14B-AWQ (better tool calling, native 40k) and prompts
    that require tool use.
-4. More sessions and a second model size; LMCache as a baseline; a break-even
+5. More sessions and a second model size; LMCache on real disk; a break-even
    table of store vs recompute by model, context and storage speed.
-5. Warm-up on open: start loading the cache when the session opens, to hide
+6. Warm-up on open: start loading the cache when the session opens, to hide
    the fetch time.
 
 ## Related work

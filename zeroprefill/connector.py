@@ -15,6 +15,7 @@ import json
 import logging
 import os
 import sys
+import time
 from dataclasses import dataclass, field
 
 import torch
@@ -275,6 +276,7 @@ class ZeroPrefillConnector(KVConnectorBase_V1):
         for request in metadata.requests:
             if request.is_store:
                 continue
+            t_start, read_s, files, tokens, device = time.perf_counter(), 0.0, 0, 0, None
             for layer_name, layer in forward_context.no_compile_layers.items():
                 kv_cache_layer = getattr(layer, "kv_cache", None)
                 if kv_cache_layer is None:
@@ -283,8 +285,12 @@ class ZeroPrefillConnector(KVConnectorBase_V1):
                     path = self._seg_file(seg, layer_name, self._tp_rank)
                     if not os.path.exists(path):
                         continue
+                    t_read = time.perf_counter()
+                    cpu_t = load_file(path)["kv_cache"]
+                    read_s += time.perf_counter() - t_read
+                    files += 1
+                    device = kv_cache_layer.device
                     with gpu_sync_allowed():
-                        cpu_t = load_file(path)["kv_cache"]
                         src = cpu_t.to(kv_cache_layer.device, non_blocking=True)
                     slots = request.slots_for(seg)
                     if slots.numel() == 0 or src.shape[0] != slots.numel():
@@ -297,6 +303,21 @@ class ZeroPrefillConnector(KVConnectorBase_V1):
                     if layer_name == first_layer:
                         self._restored_segments += 1
                         self._restored_tokens += seg.num_tokens
+                        tokens += seg.num_tokens
+            if files:
+                if device is not None and device.type == "cuda":
+                    with gpu_sync_allowed():
+                        torch.cuda.synchronize(device)
+                total_s = time.perf_counter() - t_start
+                # Wall time of the whole restore on this rank, split into
+                # reading files from disk and everything else (host to GPU copy
+                # and scatter into the paged cache).
+                logger.info("ZP_RESTORED %s", json.dumps({
+                    "rank": self._tp_rank, "files": files,
+                    "tokens": tokens,
+                    "read_s": round(read_s, 3),
+                    "copy_s": round(total_s - read_s, 3),
+                    "total_s": round(total_s, 3)}))
 
     def wait_for_layer_load(self, layer_name: str) -> None:
         return

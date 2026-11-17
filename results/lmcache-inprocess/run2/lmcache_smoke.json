@@ -1,0 +1,94 @@
+{
+  "lmcache": "lmcache==0.5.6",
+  "chunk_size": 256,
+  "save": {
+    "text": "This scheduler code manages the Key-Value (KV) cache for deep learning models, particularly those with multiple KV cache groups. It coordinates block allocation, caching, and eviction for efficient memory usage during inference, supporting various attention mechanisms like full attention, sliding window, and Mamba (linear attention).",
+    "ttft_s": 103.33760666847229,
+    "total_s": 109.52881383895874,
+    "energy_j": 14264.941,
+    "usage": {
+      "completion_tokens": 60,
+      "prompt_tokens": 16031,
+      "total_tokens": 16091,
+      "completion_tokens_details": null,
+      "prompt_tokens_details": null
+    },
+    "server": {
+      "vllm:prefix_cache_queries_total": 16031.0,
+      "vllm:prefix_cache_hits_total": 0.0,
+      "vllm:prompt_tokens_total": 16031.0,
+      "vllm:request_prefill_time_seconds_sum": 101.85326561699992
+    }
+  },
+  "cache_files": 124,
+  "cache_mib": 2976.0,
+  "warm": {
+    "text": "The provided Python code snippet you've shown is incomplete and contains several syntax errors and logical inconsistencies. Let's address these issues systematically:\n\n1. **Syntax Errors and Inconsistencies in the Provided Text**:\n    The text discusses the architecture and functionality of a `KVCacheCoordinator` class in a simplified manner. However",
+    "ttft_s": 14.011091947555542,
+    "total_s": 20.17764925956726,
+    "energy_j": 1803.029,
+    "usage": {
+      "completion_tokens": 64,
+      "prompt_tokens": 16031,
+      "total_tokens": 16095,
+      "completion_tokens_details": null,
+      "prompt_tokens_details": null
+    },
+    "server": {
+      "vllm:prefix_cache_queries_total": 16031.0,
+      "vllm:prefix_cache_hits_total": 0.0,
+      "vllm:prompt_tokens_total": 16031.0,
+      "vllm:request_prefill_time_seconds_sum": 13.87174488300002
+    }
+  },
+  "lmc_hit": [
+    "(EngineCore pid=660) \u001b[32;20m[2026-11-17 11:27:21,997] LMCache INFO:\u001b[0m Reqid: chatcmpl-bc4db804b83e172c-b0ee2816, Total tokens 16031, Inference Engine computed tokens: 0, LMCache hit tokens: 15872, need to load: 15872 \u001b[3m(vllm_v1_adapter.py:1476:lmcache.integration.vllm.vllm_v1_adapter)\u001b[0m"
+  ],
+  "lmc_retrieved": [
+    "(Worker_TP1 pid=693) \u001b[32;20m[2026-11-17 11:27:33,737] LMCache INFO:\u001b[0m [req_id=chatcmpl-bc4db804b83e172c-b0ee2816] Retrieved 15872 out of 15872 required tokens (from 15872 total tokens). size: 1.4531 gb, cost 11721.3956 ms, throughput: 0.1240 GB/s; \u001b[3m(cache_engine.py:985:lmcache.v1.cache_engine)\u001b[0m",
+    "(Worker_TP0 pid=692) \u001b[32;20m[2026-11-17 11:27:33,737] LMCache INFO:\u001b[0m [req_id=chatcmpl-bc4db804b83e172c-b0ee2816] Retrieved 15872 out of 15872 required tokens (from 15872 total tokens). size: 1.4531 gb, cost 11721.8130 ms, throughput: 0.1240 GB/s; \u001b[3m(cache_engine.py:985:lmcache.v1.cache_engine)\u001b[0m"
+  ],
+  "lmc_errors": [],
+  "cold1": {
+    "text": "This scheduler code manages the Key-Value (KV) cache for deep learning models, particularly those with multiple KV cache groups. It coordinates block allocation, caching, and eviction for efficient memory usage during inference, supporting various attention mechanisms like full attention, sliding window, and Mamba (linear attention).",
+    "ttft_s": 101.46839880943298,
+    "total_s": 107.25125002861023,
+    "energy_j": 14213.993,
+    "usage": {
+      "completion_tokens": 60,
+      "prompt_tokens": 16031,
+      "total_tokens": 16091,
+      "completion_tokens_details": null,
+      "prompt_tokens_details": null
+    },
+    "server": {
+      "vllm:prefix_cache_queries_total": 0.0,
+      "vllm:prefix_cache_hits_total": 0.0,
+      "vllm:prompt_tokens_total": 16031.0,
+      "vllm:request_prefill_time_seconds_sum": 101.33876405799992
+    }
+  },
+  "cold2": {
+    "text": "This scheduler code manages the Key-Value (KV) cache for deep learning models, particularly those with multiple KV cache groups. It coordinates block allocation, caching, and eviction for efficient memory usage during inference, supporting various attention mechanisms like full attention, sliding window, and Mamba (linear attention).",
+    "ttft_s": 103.3312337398529,
+    "total_s": 109.11206936836243,
+    "energy_j": 14573.882,
+    "usage": {
+      "completion_tokens": 60,
+      "prompt_tokens": 16031,
+      "total_tokens": 16091,
+      "completion_tokens_details": null,
+      "prompt_tokens_details": null
+    },
+    "server": {
+      "vllm:prefix_cache_queries_total": 0.0,
+      "vllm:prefix_cache_hits_total": 0.0,
+      "vllm:prompt_tokens_total": 16031.0,
+      "vllm:request_prefill_time_seconds_sum": 103.21283675199993
+    }
+  },
+  "cold_deterministic": true,
+  "warm_equals_cold": false,
+  "save_equals_cold": true,
+  "prompt_tokens": 16031
+}

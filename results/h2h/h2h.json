@@ -1,0 +1,211 @@
+{
+  "lmcache": "lmcache==0.5.6",
+  "reps": 2,
+  "mem_start_mib": {
+    "total": 32098,
+    "free": 2907,
+    "buff_cache": 27749,
+    "available": 30199
+  },
+  "zp_save": {
+    "text": "This scheduler code manages the Key-Value (KV) cache for deep learning models, particularly those with multiple KV cache groups. It coordinates block allocation, caching, and eviction for efficient memory usage during inference, supporting various attention mechanisms like full attention, sliding window, and Mamba (linear attention).",
+    "ttft_s": 105.71827697753906,
+    "total_s": 111.82912468910217,
+    "energy_j": 14468.819,
+    "usage": {
+      "completion_tokens": 60,
+      "prompt_tokens": 16031,
+      "total_tokens": 16091,
+      "completion_tokens_details": null,
+      "prompt_tokens_details": null
+    },
+    "server": {
+      "vllm:prefix_cache_queries_total": 16031.0,
+      "vllm:prefix_cache_hits_total": 0.0,
+      "vllm:prompt_tokens_total": 16031.0,
+      "vllm:request_prefill_time_seconds_sum": 104.51699682899994
+    }
+  },
+  "zp_cache_mib": 3138.138509750366,
+  "zp_warm0_env": {
+    "dropped": false,
+    "mem_mib": {
+      "total": 32098,
+      "free": 6023,
+      "buff_cache": 24686,
+      "available": 30241
+    }
+  },
+  "zp_warm0": {
+    "text": "This scheduler code manages the Key-Value (KV) cache for deep learning models, particularly those with multiple KV cache groups. It coordinates block allocation, caching, and eviction for efficient memory usage during inference, supporting various attention mechanisms like full attention, sliding window, and Mamba (linear attention).",
+    "ttft_s": 8.549419164657593,
+    "total_s": 14.557934999465942,
+    "energy_j": 1254.137,
+    "usage": {
+      "completion_tokens": 60,
+      "prompt_tokens": 16031,
+      "total_tokens": 16091,
+      "completion_tokens_details": null,
+      "prompt_tokens_details": null
+    },
+    "server": {
+      "vllm:prefix_cache_queries_total": 16031.0,
+      "vllm:prefix_cache_hits_total": 0.0,
+      "vllm:prompt_tokens_total": 16031.0,
+      "vllm:request_prefill_time_seconds_sum": 8.408550625999965
+    }
+  },
+  "zp_warm0_hit": [
+    "(EngineCore pid=613) [ZP] ZP_HIT tokens=16016 of 16031 (99.9%)"
+  ],
+  "zp_warm0_restored": [
+    "(Worker_TP0 pid=645) [ZP] ZP_RESTORED {\"rank\": 0, \"files\": 768, \"tokens\": 16016, \"read_s\": 0.982, \"copy_s\": 6.818, \"total_s\": 7.8}",
+    "(Worker_TP1 pid=646) [ZP] ZP_RESTORED {\"rank\": 1, \"files\": 768, \"tokens\": 16016, \"read_s\": 1.022, \"copy_s\": 6.779, \"total_s\": 7.801}"
+  ],
+  "zp_warm1_env": {
+    "dropped": false,
+    "mem_mib": {
+      "total": 32098,
+      "free": 5947,
+      "buff_cache": 24738,
+      "available": 30229
+    }
+  },
+  "zp_warm1": {
+    "text": "This scheduler code manages the Key-Value (KV) cache for deep learning models, particularly those with multiple KV cache groups. It coordinates block allocation, caching, and eviction for efficient memory usage during inference, supporting various attention mechanisms like full attention, sliding window, and Mamba (linear attention).",
+    "ttft_s": 3.0416650772094727,
+    "total_s": 8.970628023147583,
+    "energy_j": 939.632,
+    "usage": {
+      "completion_tokens": 60,
+      "prompt_tokens": 16031,
+      "total_tokens": 16091,
+      "completion_tokens_details": null,
+      "prompt_tokens_details": null
+    },
+    "server": {
+      "vllm:prefix_cache_queries_total": 16031.0,
+      "vllm:prefix_cache_hits_total": 0.0,
+      "vllm:prompt_tokens_total": 16031.0,
+      "vllm:request_prefill_time_seconds_sum": 2.9015605529999675
+    }
+  },
+  "zp_warm1_hit": [
+    "(EngineCore pid=899) [ZP] ZP_HIT tokens=16016 of 16031 (99.9%)"
+  ],
+  "zp_warm1_restored": [
+    "(Worker_TP0 pid=931) [ZP] ZP_RESTORED {\"rank\": 0, \"files\": 768, \"tokens\": 16016, \"read_s\": 0.181, \"copy_s\": 2.153, \"total_s\": 2.334}",
+    "(Worker_TP1 pid=932) [ZP] ZP_RESTORED {\"rank\": 1, \"files\": 768, \"tokens\": 16016, \"read_s\": 0.191, \"copy_s\": 2.156, \"total_s\": 2.347}"
+  ],
+  "lmc_save": {
+    "text": "This scheduler code manages the Key-Value (KV) cache for deep learning models, particularly those with multiple KV cache groups. It coordinates block allocation, caching, and eviction for efficient memory usage during inference, supporting various attention mechanisms like full attention, sliding window, and Mamba (linear attention).",
+    "ttft_s": 100.31113243103027,
+    "total_s": 106.67871832847595,
+    "energy_j": 14306.823,
+    "usage": {
+      "completion_tokens": 60,
+      "prompt_tokens": 16031,
+      "total_tokens": 16091,
+      "completion_tokens_details": null,
+      "prompt_tokens_details": null
+    },
+    "server": {
+      "vllm:prefix_cache_queries_total": 16031.0,
+      "vllm:prefix_cache_hits_total": 0.0,
+      "vllm:prompt_tokens_total": 16031.0,
+      "vllm:request_prefill_time_seconds_sum": 100.11526616100014
+    }
+  },
+  "lmc_l2_files": 124,
+  "lmc_l2_mib": 2976.0,
+  "lmc_warm0_env": {
+    "dropped": false,
+    "mem_mib": {
+      "total": 32098,
+      "free": 14902,
+      "buff_cache": 15846,
+      "available": 30287
+    }
+  },
+  "lmc_warm0": {
+    "text": "This scheduler code manages the Key-Value (KV) cache for deep learning models, particularly those with multiple KV cache groups. It coordinates block allocation, caching, and eviction for efficient memory usage during inference, supporting various attention mechanisms like full attention, sliding window, and Mamba (linear attention).",
+    "ttft_s": 14.964881658554077,
+    "total_s": 20.96815800666809,
+    "energy_j": 1775.449,
+    "usage": {
+      "completion_tokens": 60,
+      "prompt_tokens": 16031,
+      "total_tokens": 16091,
+      "completion_tokens_details": null,
+      "prompt_tokens_details": null
+    },
+    "server": {
+      "vllm:prefix_cache_queries_total": 16031.0,
+      "vllm:prefix_cache_hits_total": 0.0,
+      "vllm:prompt_tokens_total": 16031.0,
+      "vllm:request_prefill_time_seconds_sum": 2.07271827999989
+    }
+  },
+  "lmc_warm0_log": [
+    "(Worker_TP1 pid=1611) \u001b[32;20m[2026-11-17 13:15:22,096] LMCache INFO:\u001b[0m lmcache.mp.nonblocking_lookup_status = True \u001b[3m(vllm_multi_process_adapter.py:229:lmcache.integration.vllm.vllm_multi_process_adapter)\u001b[0m",
+    "(Worker_TP0 pid=1610) \u001b[32;20m[2026-11-17 13:15:22,302] LMCache INFO:\u001b[0m lmcache.mp.nonblocking_lookup_status = True \u001b[3m(vllm_multi_process_adapter.py:229:lmcache.integration.vllm.vllm_multi_process_adapter)\u001b[0m",
+    "(EngineCore pid=1578) \u001b[32;20m[2026-11-17 13:15:26,348] LMCache INFO:\u001b[0m lmcache.mp.nonblocking_lookup_status = True \u001b[3m(vllm_multi_process_adapter.py:229:lmcache.integration.vllm.vllm_multi_process_adapter)\u001b[0m",
+    "(APIServer pid=1530) INFO 11-17 13:15:49 [metrics.py:107] KV Transfer metrics: LMCache MP lookup count=1, LMCache MP lookup avg latency (ms)=12469.744",
+    "\u001b[32;20m[2026-11-17 13:13:48,794] LMCache INFO:\u001b[0m Initialized FSL2Adapter with base_path=/root/lmc-l2, relative_tmp_dir=None, read_ahead_size=None, use_odirect=False \u001b[3m(fs_l2_adapter.py:304:lmcache.v1.distributed.l2_adapters.fs_l2_adapter)\u001b[0m",
+    "\u001b[32;20m[2026-11-17 13:13:48,795] LMCache INFO:\u001b[0m Starting L2EvictionController... \u001b[3m(eviction_controller.py:250:lmcache.v1.distributed.storage_controllers.eviction_controller)\u001b[0m",
+    "\u001b[32;20m[2026-11-17 13:13:48,803] LMCache INFO:\u001b[0m Starting PrefetchController... \u001b[3m(prefetch_controller.py:739:lmcache.v1.distributed.storage_controllers.prefetch_controller)\u001b[0m",
+    "\u001b[32;20m[2026-11-17 13:13:48,814] LMCache INFO:\u001b[0m Initializing L2 connector usage reporting. \u001b[3m(l2_usage.py:243:lmcache.usage_telemetry.l2_usage)\u001b[0m",
+    "\u001b[32;20m[2026-11-17 13:13:48,815] LMCache INFO:\u001b[0m Started PeriodicThread: lmcache-usage-l2 (level=low, interval=600.0s, init_wait=600.0s) \u001b[3m(periodic_thread.py:248:lmcache.v1.periodic_thread)\u001b[0m",
+    "\u001b[32;20m[2026-11-17 13:15:43,034] LMCache INFO:\u001b[0m Prefetch request completed (L1+L2): 124/124 retained keys (0 L1, 124 L2) in 12457.7 ms (external_request_id=chatcmpl-8940a87c96d88a83-84ba360f, prefetch_request_id=0) \u001b[3m(storage_manager.py:651:lmcache.v1.distributed.storage_manager)\u001b[0m",
+    "\u001b[32;20m[2026-11-17 13:15:43,130] LMCache INFO:\u001b[0m Retrieved 15872 tokens in 0.084 seconds \u001b[3m(lmcache_driven_transfer.py:1100:lmcache.v1.multiprocess.modules.lmcache_driven_transfer)\u001b[0m",
+    "\u001b[32;20m[2026-11-17 13:15:43,248] LMCache INFO:\u001b[0m Retrieved 15872 tokens in 0.117 seconds \u001b[3m(lmcache_driven_transfer.py:1100:lmcache.v1.multiprocess.modules.lmcache_driven_transfer)\u001b[0m",
+    "\u001b[32;20m[2026-11-17 13:15:51,640] LMCache INFO:\u001b[0m Stopping PeriodicThread: lmcache-usage-l2 \u001b[3m(periodic_thread.py:267:lmcache.v1.periodic_thread)\u001b[0m",
+    "\u001b[32;20m[2026-11-17 13:15:51,640] LMCache INFO:\u001b[0m PeriodicThread lmcache-usage-l2 stopped during init_wait \u001b[3m(periodic_thread.py:298:lmcache.v1.periodic_thread)\u001b[0m",
+    "\u001b[32;20m[2026-11-17 13:15:53,820] LMCache INFO:\u001b[0m FSL2Adapter closed \u001b[3m(fs_l2_adapter.py:487:lmcache.v1.distributed.l2_adapters.fs_l2_adapter)\u001b[0m"
+  ],
+  "lmc_warm1_env": {
+    "dropped": false,
+    "mem_mib": {
+      "total": 32098,
+      "free": 15039,
+      "buff_cache": 15726,
+      "available": 30307
+    }
+  },
+  "lmc_warm1": {
+    "text": "This scheduler code manages the Key-Value (KV) cache for deep learning models, particularly those with multiple KV cache groups. It coordinates block allocation, caching, and eviction for efficient memory usage during inference, supporting various attention mechanisms like full attention, sliding window, and Mamba (linear attention).",
+    "ttft_s": 8.008897304534912,
+    "total_s": 14.143085718154907,
+    "energy_j": 1391.721,
+    "usage": {
+      "completion_tokens": 60,
+      "prompt_tokens": 16031,
+      "total_tokens": 16091,
+      "completion_tokens_details": null,
+      "prompt_tokens_details": null
+    },
+    "server": {
+      "vllm:prefix_cache_queries_total": 16031.0,
+      "vllm:prefix_cache_hits_total": 0.0,
+      "vllm:prompt_tokens_total": 16031.0,
+      "vllm:request_prefill_time_seconds_sum": 2.0542034519999106
+    }
+  },
+  "lmc_warm1_log": [
+    "(Worker_TP1 pid=1960) \u001b[32;20m[2026-11-17 13:18:01,251] LMCache INFO:\u001b[0m lmcache.mp.nonblocking_lookup_status = True \u001b[3m(vllm_multi_process_adapter.py:229:lmcache.integration.vllm.vllm_multi_process_adapter)\u001b[0m",
+    "(Worker_TP0 pid=1959) \u001b[32;20m[2026-11-17 13:18:01,438] LMCache INFO:\u001b[0m lmcache.mp.nonblocking_lookup_status = True \u001b[3m(vllm_multi_process_adapter.py:229:lmcache.integration.vllm.vllm_multi_process_adapter)\u001b[0m",
+    "(EngineCore pid=1927) \u001b[32;20m[2026-11-17 13:18:06,521] LMCache INFO:\u001b[0m lmcache.mp.nonblocking_lookup_status = True \u001b[3m(vllm_multi_process_adapter.py:229:lmcache.integration.vllm.vllm_multi_process_adapter)\u001b[0m",
+    "(APIServer pid=1879) INFO 11-17 13:18:19 [metrics.py:107] KV Transfer metrics: LMCache MP lookup count=1, LMCache MP lookup avg latency (ms)=5525.874",
+    "\u001b[32;20m[2026-11-17 13:16:08,954] LMCache INFO:\u001b[0m Initialized FSL2Adapter with base_path=/root/lmc-l2, relative_tmp_dir=None, read_ahead_size=None, use_odirect=False \u001b[3m(fs_l2_adapter.py:304:lmcache.v1.distributed.l2_adapters.fs_l2_adapter)\u001b[0m",
+    "\u001b[32;20m[2026-11-17 13:16:08,954] LMCache INFO:\u001b[0m Starting L2EvictionController... \u001b[3m(eviction_controller.py:250:lmcache.v1.distributed.storage_controllers.eviction_controller)\u001b[0m",
+    "\u001b[32;20m[2026-11-17 13:16:08,962] LMCache INFO:\u001b[0m Starting PrefetchController... \u001b[3m(prefetch_controller.py:739:lmcache.v1.distributed.storage_controllers.prefetch_controller)\u001b[0m",
+    "\u001b[32;20m[2026-11-17 13:16:08,972] LMCache INFO:\u001b[0m Initializing L2 connector usage reporting. \u001b[3m(l2_usage.py:243:lmcache.usage_telemetry.l2_usage)\u001b[0m",
+    "\u001b[32;20m[2026-11-17 13:16:08,973] LMCache INFO:\u001b[0m Started PeriodicThread: lmcache-usage-l2 (level=low, interval=600.0s, init_wait=600.0s) \u001b[3m(periodic_thread.py:248:lmcache.v1.periodic_thread)\u001b[0m",
+    "\u001b[32;20m[2026-11-17 13:18:15,476] LMCache INFO:\u001b[0m Prefetch request completed (L1+L2): 124/124 retained keys (0 L1, 124 L2) in 5514.2 ms (external_request_id=chatcmpl-abae5454a9c850e8-8b5485b0, prefetch_request_id=0) \u001b[3m(storage_manager.py:651:lmcache.v1.distributed.storage_manager)\u001b[0m",
+    "\u001b[32;20m[2026-11-17 13:18:15,571] LMCache INFO:\u001b[0m Retrieved 15872 tokens in 0.081 seconds \u001b[3m(lmcache_driven_transfer.py:1100:lmcache.v1.multiprocess.modules.lmcache_driven_transfer)\u001b[0m",
+    "\u001b[32;20m[2026-11-17 13:18:15,697] LMCache INFO:\u001b[0m Retrieved 15872 tokens in 0.126 seconds \u001b[3m(lmcache_driven_transfer.py:1100:lmcache.v1.multiprocess.modules.lmcache_driven_transfer)\u001b[0m",
+    "\u001b[32;20m[2026-11-17 13:18:24,211] LMCache INFO:\u001b[0m Stopping PeriodicThread: lmcache-usage-l2 \u001b[3m(periodic_thread.py:267:lmcache.v1.periodic_thread)\u001b[0m",
+    "\u001b[32;20m[2026-11-17 13:18:24,212] LMCache INFO:\u001b[0m PeriodicThread lmcache-usage-l2 stopped during init_wait \u001b[3m(periodic_thread.py:298:lmcache.v1.periodic_thread)\u001b[0m",
+    "\u001b[32;20m[2026-11-17 13:18:25,981] LMCache INFO:\u001b[0m FSL2Adapter closed \u001b[3m(fs_l2_adapter.py:487:lmcache.v1.distributed.l2_adapters.fs_l2_adapter)\u001b[0m"
+  ]
+}

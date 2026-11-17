@@ -39,7 +39,8 @@ sys.path.insert(0, "/kaggle/working/zp_code")
 
 def main(run, kernel_sources=()):
     user = kaggle_user()
-    files = {"lib.py": open(f"{ROOT}/kaggle/lib.py", encoding="utf-8").read()}
+    files = {name: open(f"{ROOT}/kaggle/{name}", encoding="utf-8").read()
+             for name in ("lib.py", "lmc.py")}
     for name in sorted(os.listdir(f"{ROOT}/zeroprefill")):
         if name.endswith(".py"):
             files[f"zeroprefill/{name}"] = open(f"{ROOT}/zeroprefill/{name}", encoding="utf-8").read()
