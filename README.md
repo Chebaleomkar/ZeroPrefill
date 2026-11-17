@@ -48,7 +48,8 @@ Read these with the caveats:
 
 - **Why 3.5x and not 64x.** Only tokens the model *read* are saved, not the
   ones it *wrote*. Day 1's last answer (~3k tokens) was recomputed on Day 2,
-  and that is most of the remaining 75 s. Saving at session end is the next fix.
+  and that is most of the remaining 75 s. The connector now saves at session
+  end (see below); Day 2 has not been re-run with it yet.
 - **Fetch cost.** Copying the 4.6 GiB cache from Kaggle's storage to local disk
   took 73.7 s, which is not included in the warm time.
 - **Output match.** Each arm reproduces itself exactly. Cold and warm agree for
@@ -59,6 +60,25 @@ Read these with the caveats:
 - **Weak agent behaviour.** Qwen2.5-14B-AWQ only used tools on the first task
   and answered the rest without reading files. The session is a real 27k-token
   multi-turn conversation, but not yet a realistic codebase read.
+
+**Saving the last answer (2026-11-17)**
+
+Turn 1 sends the smoke prompt with a request for a detailed answer; the
+connector saves the prompt during prefill and the 871-token answer when the
+request ends. Turn 2, in a fresh server, sends prompt + answer + a new question
+(16,936 tokens). Raw outputs: [`results/answer/`](results/answer/).
+
+| | cold | warm |
+|---|---|---|
+| tokens restored | 0 | 16,384 (prompt-only save: at most 15,360) |
+| time to first token | 111.6 s | 14.2 s |
+| output | reference | **identical** |
+
+So 1,024 tokens of the previous answer were reused. The answer's last 512
+tokens were saved but not reused (partial last segment, see Known issues).
+Warm is 14.2 s here against 1.60 s in the smoke test; 552 tokens are
+recomputed instead of 15, but that does not obviously account for the
+difference and it is not yet explained.
 
 Full log with dates and reasoning: [`docs/RESEARCH.md`](docs/RESEARCH.md) §6.
 
@@ -138,12 +158,13 @@ zeroprefill/          the connector
 kaggle/               the 2x T4 experiments
   lib.py              install vLLM + pi, start/stop server, logging proxy, energy
   smoke.py            run 0: save, restore, compare with cold
+  answer.py           turn 2 reuses the saved answer; unit tests on vLLM 0.30
   day1.py             build a real pi session, save its KV cache
   day2.py             resume on a fresh machine, warm vs cold
   push.py             bundle + push as a private Kaggle kernel
 results/              raw outputs of every run (no KV caches)
-  smoke/  day1/  day2/
-tests/                hashing, segments, store path (unaligned prompts, chunking)
+  smoke/  day1/  day2/  answer/
+tests/                hashing, segments, store path, end-of-session save
 scripts/              phase 1: local GTX 1650 runs under WSL2
 docs/
   RESEARCH.md         plan, metrics, use cases, limits, dated status log
@@ -152,9 +173,18 @@ docs/
 
 ## Known issues
 
-- Last answer of a session is not cached (see results).
-- The fingerprint does not yet include RoPE scaling or max context length.
-  Never restore a cache under a different context-length setting.
+- The last answer of a session is saved when the request ends: the
+  connector holds the request's GPU blocks until the worker has written them,
+  one engine step later. Verified on Kaggle (above); the Day 1 / Day 2
+  numbers were measured before this change.
+- Saving the answer only helps if the client sends it back with the same
+  token ids. A chat template that re-tokenizes the answer differently misses
+  from the first differing block.
+- A longer follow-up prompt cannot reuse the partial last segment (under
+  1,024 tokens) of the previous save, because segments are keyed on their
+  last block.
+- The fingerprint now includes the RoPE settings and max context length, so
+  caches written by earlier versions are not reused.
 - Restore copies all layers before compute starts; no per-layer pipelining.
 - Only tested on vLLM 0.30.0. The connector API changes between versions.
 - Per-file invalidation (drop only the edited file's part of the cache) is not
@@ -162,8 +192,8 @@ docs/
 
 ## Next steps
 
-1. Save at session end, including the last answer.
-2. Add RoPE / max length to the fingerprint.
+1. Re-run Day 2 with the end-of-session save, and explain the 14.2 s warm time.
+2. Let a longer prompt reuse the previous save's partial last segment.
 3. Day 1 v2 with Qwen3-14B-AWQ (better tool calling, native 40k) and prompts
    that require tool use.
 4. More sessions and a second model size; LMCache as a baseline; a break-even
@@ -177,7 +207,9 @@ This mechanism is not new. Closest prior work: CachedAttention / AttentionStore
 (USENIX ATC 2024), Pensieve, LMCache (2025), Mooncake, Continuum (2025, KV
 time-to-live for agents), and on the energy side GreenCache and "Store or
 Recompute?". Providers ship versions of it too: DeepSeek's disk cache,
-Anthropic's 1-hour cache, OpenAI's extended retention. Our contribution so far
+Anthropic's 1-hour cache, OpenAI's extended retention. Saving the model's own
+answer is not new either: LMCache's multi-process connector has a
+`lmcache.mp.save_decode_cache` option (off by default). Our contribution so far
 is measurement: real agent sessions resumed across machines, with energy, and
 the practical failure modes found along the way.
 

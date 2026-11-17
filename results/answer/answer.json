@@ -1,0 +1,78 @@
+{
+  "unit_tests": "  /usr/local/lib/python3.13/dist-packages/torch/jit/_script.py:365: DeprecationWarning: `torch.jit.script_method` is deprecated. Please switch to `torch.compile` or `torch.export`.\n    warnings.warn(\n\n-- Docs: https://docs.pytest.org/en/stable/how-to/capture-warnings.html\n26 passed, 14 warnings in 30.52s\n",
+  "turn1": {
+    "text": "This scheduler code is part of a system designed to manage the Key-Value (KV) cache for a machine learning model, specifically for handling various types of attention mechanisms such as full attention, sliding window attention, and Mamba (a linear attention mechanism). The code is structured into several files, each serving a specific purpose in managing the KV cache and coordinating the operations of different attention mechanisms. Let's go through each file in detail:\n\n### v1/core/__init__.py\nThis file initializes the core components of the KV cache management system. It imports necessary modules and sets up the environment for the rest of the files to operate.\n\n### v1/core/block_pool.py\nThis file defines the `BlockPool` class, which manages the allocation, freeing, and caching of KV cache blocks. Here\u2019s a breakdown of its key functionalities:\n\n- **Block Management**: Manages a pool of blocks, allowing for allocation, freeing, and caching of these blocks.\n- **Caching Mechanism**: Implements a caching mechanism to store and retrieve blocks efficiently.\n- **Events Handling**: Handles events related to KV cache operations, such as block allocation, freeing, and caching.\n- **Metrics Collection**: Tracks metrics related to block usage and residency.\n\nThe `BlockPool` class is central to managing the KV cache blocks and ensuring efficient memory usage.\n\n### v1/core/encoder_cache_manager.py\nThis file defines the `EncoderCacheManager` class, which manages the caching of encoder outputs for multimodal models. Its key functionalities include:\n\n- **Cache Management**: Manages the caching of encoder outputs to avoid recomputing them when the same multimodal inputs appear in different stages of request processing.\n- **Memory Awareness**: Provides memory-aware caching to optimize memory usage.\n- **Eviction Policy**: Implements an eviction policy to ensure that the cache does not overflow and maintains optimal performance.\n\nThe `EncoderCacheManager` class is crucial for optimizing the use of memory in multimodal models by caching encoder outputs.\n\n### v1/core/kv_cache_coordinator.py\nThis file defines the `KVCacheCoordinator` class, which coordinates the KV cache operations across different KV cache groups. It includes several subclasses to handle different scenarios:\n\n- **KVCacheCoordinatorNoPrefixCache**: Handles scenarios where prefix caching is disabled or unsupported.\n- **UnitaryKVCacheCoordinator**: Manages KV cache operations for models with only one KV cache group.\n- **HybridKVCacheCoordinator**: Manages KV cache operations for models with multiple KV cache groups.\n\nThe `KVCacheCoordinator` class and its subclasses ensure that the KV cache operations are coordinated efficiently across different attention mechanisms and cache groups.\n\n### v1/core/kv_cache_coordinator.py (continued)\nThis file also contains the `find_longest_cache_hit` method, which is responsible for determining the longest cache hit across different KV cache groups. This method is crucial for optimizing the use of cached blocks and ensuring efficient memory usage.\n\n### v1/core/single_type_kv_cache_manager.py\nThis file defines the `SingleTypeKVCacheManager` class, which manages the KV cache operations for a single type of KV cache (e.g., full attention, sliding window attention, Mamba). It includes subclasses for different types of KV cache mechanisms:\n\n- **CrossAttentionManager**: Manages KV cache operations for cross-attention mechanisms.\n- **MambaManager**: Manages KV cache operations for Mamba mechanisms.\n- **SlidingWindowManager**: Manages KV cache operations for sliding window attention mechanisms.\n\nThese classes provide specialized functionality for managing KV cache operations for different types of attention mechanisms.\n\n### v1/core/kv_cache_coordinator.py (continued)\nThis file also includes the `compute_mm_encoder_budget` function, which computes the budget for encoder cache based on the model and scheduler configurations. This function is essential for ensuring that the encoder cache is sized appropriately to handle the computational requirements of the model.\n\n### Summary\nThe pieces of this scheduler code fit together to create a comprehensive system for managing the KV cache in machine learning models. The `BlockPool` class manages the allocation and caching of blocks, while the `EncoderCacheManager` class optimizes memory usage for multimodal models. The `KVCacheCoordinator` class and its subclasses coordinate KV cache operations across different attention mechanisms and cache groups, ensuring efficient and effective use of memory resources.",
+    "ttft_s": 103.59459400177002,
+    "total_s": 189.77882838249207,
+    "energy_j": 24612.517,
+    "usage": {
+      "completion_tokens": 871,
+      "prompt_tokens": 16041,
+      "total_tokens": 16912,
+      "completion_tokens_details": null,
+      "prompt_tokens_details": null
+    },
+    "server": {
+      "vllm:prefix_cache_queries_total": 16041.0,
+      "vllm:prefix_cache_hits_total": 0.0,
+      "vllm:prompt_tokens_total": 16041.0,
+      "vllm:request_prefill_time_seconds_sum": 102.33181370699992
+    }
+  },
+  "zp_saved": [
+    "(EngineCore pid=168) [ZP] ZP_SAVED {\"event\": \"saved\", \"request_id\": \"chatcmpl-9d295cbb50ef1f29-a92aef01\", \"prompt_tokens\": 16041, \"segments_total\": 16, \"segments_emitted\": 16, \"final_segments\": 2, \"segment_dirs_on_disk\": 17, \"cache_files\": 1537}"
+  ],
+  "zp_flushed": [
+    "(Worker_TP0 pid=200) [ZP] ZP_FLUSHED {\"request_id\": \"chatcmpl-9d295cbb50ef1f29-a92aef01\", \"rank\": 0, \"tokens\": 16896, \"segments\": 2}",
+    "(Worker_TP1 pid=201) [ZP] ZP_FLUSHED {\"request_id\": \"chatcmpl-9d295cbb50ef1f29-a92aef01\", \"rank\": 1, \"tokens\": 16896, \"segments\": 2}"
+  ],
+  "cache_mib": 3294.146566390991,
+  "warm": {
+    "text": "Certainly! Here are the three most important functions in the code, summarized in one line each:\n\n1. **`BlockPool.__init__`**: Initializes the block pool with a specified number of blocks, enabling caching, setting the hash block size, and optionally enabling KV cache events and metrics collection.\n2. **`",
+    "ttft_s": 14.182244300842285,
+    "total_s": 20.304816246032715,
+    "energy_j": 2150.266,
+    "usage": {
+      "completion_tokens": 64,
+      "prompt_tokens": 16936,
+      "total_tokens": 17000,
+      "completion_tokens_details": null,
+      "prompt_tokens_details": null
+    },
+    "server": {
+      "vllm:prefix_cache_queries_total": 16936.0,
+      "vllm:prefix_cache_hits_total": 0.0,
+      "vllm:prompt_tokens_total": 16936.0,
+      "vllm:request_prefill_time_seconds_sum": 14.032608072999892
+    }
+  },
+  "zp_hit": [
+    "(EngineCore pid=601) [ZP] ZP_HIT tokens=16384 of 16936 (96.7%)"
+  ],
+  "warm_hit_tokens": 16384,
+  "cold": {
+    "text": "Certainly! Here are the three most important functions in the code, summarized in one line each:\n\n1. **`BlockPool.__init__`**: Initializes the block pool with a specified number of blocks, enabling caching, setting the hash block size, and optionally enabling KV cache events and metrics collection.\n2. **`",
+    "ttft_s": 111.56241369247437,
+    "total_s": 117.65292263031006,
+    "energy_j": 15537.146,
+    "usage": {
+      "completion_tokens": 64,
+      "prompt_tokens": 16936,
+      "total_tokens": 17000,
+      "completion_tokens_details": null,
+      "prompt_tokens_details": null
+    },
+    "server": {
+      "vllm:prefix_cache_queries_total": 0.0,
+      "vllm:prefix_cache_hits_total": 0.0,
+      "vllm:prompt_tokens_total": 16936.0,
+      "vllm:request_prefill_time_seconds_sum": 111.417668693
+    }
+  },
+  "turn1_prompt_tokens": 16041,
+  "turn1_answer_tokens": 871,
+  "turn2_prompt_tokens": 16936,
+  "answer_reused": true,
+  "warm_equals_cold": true,
+  "zp_warnings": []
+}

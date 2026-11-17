@@ -14,36 +14,13 @@ import shutil
 
 import lib
 
-PROMPT_TOKENS = int(os.environ.get("ZP_SMOKE_TOKENS", "16000"))
 CACHE = "/root/zp-cache"  # local disk, regenerated every run
-
-
-def build_messages():
-    """A long, deterministic, code-heavy prompt: pinned vLLM's own sources."""
-    import vllm
-    from transformers import AutoTokenizer
-    tok = AutoTokenizer.from_pretrained(lib.MODEL)
-    root = os.path.dirname(vllm.__file__)
-    files = sorted(glob.glob(f"{root}/v1/core/**/*.py", recursive=True))
-    body, n = [], 0
-    for path in files:
-        text = open(path).read()
-        body.append(f"### {os.path.relpath(path, root)}\n{text}")
-        n += len(tok.encode(text))
-        if n >= PROMPT_TOKENS:
-            break
-    content = "\n\n".join(body)
-    ids = tok.encode(content)[:PROMPT_TOKENS]
-    content = tok.decode(ids)
-    return [{"role": "system", "content": "You are a senior inference engineer."},
-            {"role": "user", "content": content + "\n\nIn three sentences, what does "
-             "this scheduler code do?"}]
 
 
 def main():
     lib.sh("nvidia-smi")
     lib.install_vllm()
-    messages = build_messages()
+    messages = lib.build_messages()
     shutil.rmtree(CACHE, ignore_errors=True)
     res = {}
 

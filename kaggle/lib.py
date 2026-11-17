@@ -93,20 +93,25 @@ def pi(args, cwd, timeout):
 
 # ---------------------------------------------------------------- server
 
-def start_server(tag, cache_root=None, prefix_caching=True):
-    """cache_root=None serves plain vLLM, the no-ZeroPrefill baseline."""
+def start_server(tag, cache_root=None, prefix_caching=True, kv_transfer=None, extra_env=None):
+    """cache_root=None serves plain vLLM, the no-ZeroPrefill baseline.
+
+    kv_transfer replaces the ZeroPrefill connector with another --kv-transfer-config
+    (the LMCache baseline); extra_env is added to the server's environment.
+    """
     global MAX_LEN
     try:
-        return _start_server(tag, cache_root, prefix_caching)
+        return _start_server(tag, cache_root, prefix_caching, kv_transfer, extra_env)
     except RuntimeError:
         if MAX_LEN <= NATIVE_LEN:
             raise
         log(f"server failed at max_len {MAX_LEN} with YaRN; retrying at {NATIVE_LEN}")
         MAX_LEN = NATIVE_LEN
-        return _start_server(tag, cache_root, prefix_caching)
+        return _start_server(tag, cache_root, prefix_caching, kv_transfer, extra_env)
 
 
-def _start_server(tag, cache_root, prefix_caching):
+def _start_server(tag, cache_root, prefix_caching, kv_transfer, extra_env):
+    assert not (cache_root and kv_transfer), "one KV connector per server"
     cmd = [sys.executable, "-m", "vllm.entrypoints.openai.api_server",
            "--model", MODEL, "--served-model-name", SERVED_NAME,
            "--host", "127.0.0.1", "--port", str(PORT),
@@ -131,13 +136,18 @@ def _start_server(tag, cache_root, prefix_caching):
             "kv_connector_module_path": "zeroprefill.connector",
             "kv_connector_extra_config": {"zeroprefill": {
                 "cache_root": cache_root, "quantization": "awq"}}})]
+    if kv_transfer:
+        cmd += ["--kv-transfer-config", json.dumps(kv_transfer)]
     env = {**os.environ,
            "PYTHONPATH": f"{CODE_DIR}:" + os.environ.get("PYTHONPATH", ""),
-           "ZP_SUMMARY": f"{OUT}/summary.jsonl"}
+           "ZP_SUMMARY": f"{OUT}/summary.jsonl",
+           **(extra_env or {})}
     logpath = f"{OUT}/server_{tag}.log"
-    log(f"starting server [{tag}] connector={'on' if cache_root else 'off'}")
+    connector = kv_transfer["kv_connector"] if kv_transfer else ("on" if cache_root else "off")
+    log(f"starting server [{tag}] connector={connector}")
     proc = subprocess.Popen(cmd, stdout=open(logpath, "w"), stderr=subprocess.STDOUT,
                             env=env, start_new_session=True)
+    proc.logpath = logpath
     t0 = time.time()
     while time.time() - t0 < 1800:
         if proc.poll() is not None:
@@ -154,8 +164,43 @@ def _start_server(tag, cache_root, prefix_caching):
     raise TimeoutError(f"server [{tag}] not ready:\n{tail(logpath)}")
 
 
+def _zp_events(path, event):
+    out = []
+    for line in grep(path, f"{event} "):
+        try:
+            out.append(json.loads(line.split(f"{event} ", 1)[1]))
+        except ValueError:
+            pass
+    return out
+
+
+def wait_for_flush(logpath, proc=None, timeout=300):
+    """Wait until every end-of-session save is on disk on every TP rank.
+
+    ZeroPrefill writes a request's answer one engine step after the reply is
+    sent (ZP_SAVED with final_segments > 0, then one ZP_FLUSHED per rank).
+    Killing the server before that loses the answer.
+    """
+    t0 = time.time()
+    while True:
+        want = {r["request_id"] for r in _zp_events(logpath, "ZP_SAVED")
+                if r.get("final_segments")}
+        got = [r["request_id"] for r in _zp_events(logpath, "ZP_FLUSHED")]
+        missing = {r for r in want if got.count(r) < TP}
+        if not missing:
+            if want:
+                log(f"{len(want)} end-of-session saves flushed after {time.time() - t0:.0f}s")
+            return True
+        if time.time() - t0 > timeout or (proc is not None and proc.poll() is not None):
+            log(f"WARNING: {len(missing)} end-of-session saves not flushed")
+            return False
+        time.sleep(1)
+
+
 def stop_server(proc):
     """Kill the whole process group (TP workers hold the GPUs), wait for VRAM."""
+    if getattr(proc, "logpath", None):
+        wait_for_flush(proc.logpath, proc)
     try:
         os.killpg(proc.pid, signal.SIGTERM)
     except ProcessLookupError:
@@ -239,6 +284,37 @@ def chat(messages, max_tokens=64):
     return {"text": "".join(parts), "ttft_s": ttft, "total_s": total,
             "energy_j": (e1 - e0) / 1000.0, "usage": usage,
             "server": {k: m1.get(k, 0) - m0.get(k, 0) for k in m1}}
+
+
+# ---------------------------------------------------------------- smoke prompt
+
+SMOKE_TOKENS = int(os.environ.get("ZP_SMOKE_TOKENS", "16000"))
+
+
+def build_messages():
+    """A long, deterministic, code-heavy prompt: pinned vLLM's own sources.
+
+    Shared by smoke.py and lmcache-smoke.py so both measure the same prompt.
+    """
+    import glob
+    import vllm
+    from transformers import AutoTokenizer
+    tok = AutoTokenizer.from_pretrained(MODEL)
+    root = os.path.dirname(vllm.__file__)
+    files = sorted(glob.glob(f"{root}/v1/core/**/*.py", recursive=True))
+    body, n = [], 0
+    for path in files:
+        text = open(path).read()
+        body.append(f"### {os.path.relpath(path, root)}\n{text}")
+        n += len(tok.encode(text))
+        if n >= SMOKE_TOKENS:
+            break
+    content = "\n\n".join(body)
+    ids = tok.encode(content)[:SMOKE_TOKENS]
+    content = tok.decode(ids)
+    return [{"role": "system", "content": "You are a senior inference engineer."},
+            {"role": "user", "content": content + "\n\nIn three sentences, what does "
+             "this scheduler code do?"}]
 
 
 # ---------------------------------------------------------------- proxy

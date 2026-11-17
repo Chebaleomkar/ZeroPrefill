@@ -29,7 +29,13 @@ from vllm.distributed.kv_transfer.kv_connector.v1.base import (
 from vllm.logger import init_logger
 from vllm.utils.gpu_sync_debug import gpu_sync_allowed
 
-from .hashing import CacheLayout, block_dir, chain_blocks, matched_prefix_blocks
+from .hashing import (
+    CacheLayout,
+    block_dir,
+    chain_blocks,
+    matched_prefix_blocks,
+    rope_json,
+)
 
 logger = init_logger(__name__)
 
@@ -87,10 +93,13 @@ class ZPReqMeta:
     # store path, where chunked prefill delivers the prompt in slices and the
     # mapping from token index to physical slot must be assembled by hand.
     seg_slots: list[tuple[str, int, list[int]]] = field(default_factory=list)
+    # Set on the end-of-session save. The scheduler is holding this finished
+    # request's blocks until the worker writes them and reports it done.
+    finish_req_id: str | None = None
 
     @staticmethod
     def make_meta(token_ids, block_size, is_store, segments,
-                  block_ids=None, windows=None):
+                  block_ids=None, windows=None, finish_req_id=None):
         if windows:
             # Store path: slots come per segment.
             seg_slots = [(h, start, slots) for h, start, slots in windows]
@@ -100,7 +109,8 @@ class ZPReqMeta:
                              slot_mapping=torch.tensor(flat, dtype=torch.long),
                              is_store=is_store,
                              segments=segments,
-                             seg_slots=seg_slots)
+                             seg_slots=seg_slots,
+                             finish_req_id=finish_req_id)
         # Load path: one contiguous mapping built straight from block ids.
         valid = align_to_block_size(len(token_ids), block_size)
         bid = torch.tensor(block_ids, dtype=torch.long)
@@ -174,17 +184,24 @@ class ZeroPrefillConnector(KVConnectorBase_V1):
         # after distributed init. The scheduler never knows a rank.
         self._tp_rank: int | None = None
 
+        model_config = vllm_config.model_config
         self.layout = CacheLayout(
-            model_id=vllm_config.model_config.model,
+            model_id=model_config.model,
             quantization=str(extra.get("quantization", "none")),
             kv_dtype=str(vllm_config.cache_config.cache_dtype),
             block_size=self._block_size,
             tp_size=self._tp_size,
+            rope=rope_json(model_config.hf_text_config),
+            max_model_len=int(model_config.max_model_len),
         )
 
         self._requests_need_load: set[str] = set()
         self._saved_reqs: set[str] = set()
         self._store_active: dict[str, _StoreState] = {}
+        # Finished requests whose answer still has to be written, keyed on id:
+        # (token_ids, segments, per-segment slot windows).
+        self._final_saves: dict[str, tuple[list[int], list[Segment],
+                                           list[tuple[str, int, list[int]]]]] = {}
         self._layer_names: list[str] | None = None
         self._restored_tokens = 0
         self._restored_segments = 0
@@ -289,30 +306,70 @@ class ZeroPrefillConnector(KVConnectorBase_V1):
         if metadata is None:
             return
         for request in metadata.requests:
-            if not request.is_store:
+            # End-of-session saves are written in get_finished(), which also
+            # runs on steps that have no forward pass.
+            if not request.is_store or request.finish_req_id:
                 continue
             for seg in request.segments:
-                slots = request.slots_for(seg)
-                if slots.numel() != seg.num_tokens:
-                    continue
-                with gpu_sync_allowed():
-                    slots = slots.to(kv_layer.device, non_blocking=True)
-                kv = _gather(kv_layer, slots, self._block_size)
-                with gpu_sync_allowed():
-                    cpu_t = {"kv_cache": kv.detach().cpu()}
-                os.makedirs(self._seg_dir(seg), exist_ok=True)
-                # Lookups only check that a file exists, so a file cut short
-                # by a crash must never appear under its final name.
-                path = self._seg_file(seg, layer_name, self._tp_rank)
-                save_file(cpu_t, path + ".tmp")
-                os.replace(path + ".tmp", path)
-                self._mark_written(seg)
+                self._write_segment(request, seg, layer_name, kv_layer)
 
-    def _mark_written(self, seg: Segment) -> None:
-        return
+    def _write_segment(self, request: ZPReqMeta, seg: Segment, layer_name: str,
+                       kv_layer: torch.Tensor) -> None:
+        slots = request.slots_for(seg)
+        if slots.numel() != seg.num_tokens:
+            return
+        with gpu_sync_allowed():
+            slots = slots.to(kv_layer.device, non_blocking=True)
+        kv = _gather(kv_layer, slots, self._block_size)
+        with gpu_sync_allowed():
+            cpu_t = {"kv_cache": kv.detach().cpu()}
+        os.makedirs(self._seg_dir(seg), exist_ok=True)
+        # Lookups only check that a file exists, so a file cut short by a crash
+        # must never appear under its final name.
+        path = self._seg_file(seg, layer_name, self._tp_rank)
+        save_file(cpu_t, path + ".tmp")
+        os.replace(path + ".tmp", path)
 
     def wait_for_save(self) -> None:
         return
+
+    def get_finished(self, finished_req_ids: set[str]):
+        """Write end-of-session saves and release their blocks.
+
+        vLLM calls this every step, including steps with no forward pass
+        (where save_kv_layer and wait_for_save are skipped, and in vLLM 0.30's
+        model runner no forward context is set). The layers are read from the
+        config's static_forward_context, the same dict a forward context
+        exposes as no_compile_layers, so the KV comes from the same tensors
+        start_load_kv restores into.
+        """
+        if not self.has_connector_metadata():
+            return None, None
+        final = [r for r in self._get_connector_metadata().requests
+                 if r.finish_req_id]
+        if not final:
+            return None, None
+        layers = self._vllm_config.compilation_config.static_forward_context
+        done: set[str] = set()
+        for request in final:
+            try:
+                for layer_name, layer in layers.items():
+                    kv_layer = getattr(layer, "kv_cache", None)
+                    if kv_layer is None:
+                        continue
+                    for seg in request.segments:
+                        self._write_segment(request, seg, layer_name, kv_layer)
+            except Exception:
+                # The blocks must still be released, or the engine holds them
+                # (and keeps stepping) forever. A missing file is a cache miss.
+                logger.exception("final save failed for %s", request.finish_req_id)
+            done.add(request.finish_req_id)
+            logger.info("ZP_FLUSHED %s", json.dumps({
+                "request_id": request.finish_req_id,
+                "rank": self._tp_rank,
+                "tokens": request.segments[-1].end_tok,
+                "segments": len(request.segments)}))
+        return done, None
 
     # ---------------- scheduler side ----------------
 
@@ -410,6 +467,12 @@ class ZeroPrefillConnector(KVConnectorBase_V1):
                              num_computed=num_computed,
                              num_scheduled=num_scheduled)
 
+        for req_id, (token_ids, segs, windows) in self._final_saves.items():
+            meta.add_request(token_ids=token_ids, block_size=self._block_size,
+                             is_store=True, segments=segs, windows=windows,
+                             finish_req_id=req_id)
+        self._final_saves.clear()
+
         self._requests_need_load.clear()
         return meta
 
@@ -494,28 +557,55 @@ class ZeroPrefillConnector(KVConnectorBase_V1):
         return seg.start_tok, [merged[p] for p in range(seg.start_tok, seg.end_tok)]
 
     def request_finished(self, request, block_ids) -> tuple[bool, dict | None]:
-        if block_ids and request.prompt_token_ids:
-            self._saved_reqs.add(request.request_id)
-            state = self._store_active.pop(request.request_id, None)
-            n_files = sum(len(f) for _, _, f in os.walk(self.cache_root))
-            # Counted from disk: the worker-side connector writes the tensors,
-            # so an in-memory flag on this scheduler-side object would not know.
-            on_disk = set()
-            for _, dirs, _ in os.walk(self.cache_root):
-                on_disk.update(dirs)
-            rec = {"event": "saved",
-                   "request_id": request.request_id,
-                   "prompt_tokens": len(request.prompt_token_ids),
-                   "segments_total": len(state.segments) if state else 0,
-                   "segments_emitted": len(state.emitted) if state else 0,
-                   "segment_dirs_on_disk": len(on_disk),
-                   "cache_files": n_files}
-            logger.info("ZP_SAVED %s", json.dumps(rec))
-            _append_summary(rec)
-        return False, None
+        if not (block_ids and request.prompt_token_ids):
+            return False, None
+        self._saved_reqs.add(request.request_id)
+        state = self._store_active.pop(request.request_id, None)
+        final_segments = self._queue_final_save(request, block_ids)
+        n_files = sum(len(f) for _, _, f in os.walk(self.cache_root))
+        # Counted from disk: the worker-side connector writes the tensors, so an
+        # in-memory flag on this scheduler-side object would not know.
+        on_disk = set()
+        for _, dirs, _ in os.walk(self.cache_root):
+            on_disk.update(dirs)
+        rec = {"event": "saved",
+               "request_id": request.request_id,
+               "prompt_tokens": len(request.prompt_token_ids),
+               "segments_total": len(state.segments) if state else 0,
+               "segments_emitted": len(state.emitted) if state else 0,
+               "final_segments": final_segments,
+               "segment_dirs_on_disk": len(on_disk),
+               "cache_files": n_files}
+        logger.info("ZP_SAVED %s", json.dumps(rec))
+        _append_summary(rec)
+        # True holds the blocks until get_finished() reports the save written.
+        return final_segments > 0, None
 
-    def get_finished(self, finished_req_ids):
-        return None, None
+    def _queue_final_save(self, request, block_ids: list[int]) -> int:
+        """Plan the save of everything the session computed, answer included.
+
+        The prompt was saved during prefill. The answer the model wrote only
+        exists in the blocks the scheduler is about to free, and the next turn's
+        prompt starts with it. Returns the number of segments queued.
+        """
+        # Tokens whose KV is in the blocks. The last sampled token has none yet,
+        # and with async scheduling some tokens may be scheduled but not run.
+        n_done = request.num_computed_tokens - getattr(request, "num_in_flight_tokens", 0)
+        token_ids = list(request.all_token_ids)[:n_done]
+        segs = segment_chain(chain_blocks(token_ids, self.layout, drop_last=False),
+                             self.segment_blocks)
+        layer_names = self._known_layer_names()
+        pending = [s for s in segs if not self._seg_complete(s, layer_names)]
+        bs = self._block_size
+        if not pending or len(block_ids) * bs < pending[-1].end_tok:
+            return 0
+        windows = [(s.seg_hash, s.start_tok,
+                    [block_ids[p // bs] * bs + p % bs
+                     for p in range(s.start_tok, s.end_tok)])
+                   for s in pending]
+        self._final_saves[request.request_id] = (token_ids, pending, windows)
+        return len(pending)
+
 
 
 def _append_summary(rec: dict) -> None:

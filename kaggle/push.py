@@ -43,6 +43,9 @@ def main(run, kernel_sources=()):
     for name in sorted(os.listdir(f"{ROOT}/zeroprefill")):
         if name.endswith(".py"):
             files[f"zeroprefill/{name}"] = open(f"{ROOT}/zeroprefill/{name}", encoding="utf-8").read()
+    for name in sorted(os.listdir(f"{ROOT}/tests")):
+        if name.endswith(".py"):
+            files[f"tests/{name}"] = open(f"{ROOT}/tests/{name}", encoding="utf-8").read()
 
     slug = f"zeroprefill-{run}"
     out = f"{ROOT}/build/{slug}"

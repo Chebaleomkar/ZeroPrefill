@@ -3,6 +3,8 @@
 from __future__ import annotations
 
 import os
+from dataclasses import replace
+from types import SimpleNamespace
 
 import pytest
 
@@ -11,6 +13,7 @@ from zeroprefill.hashing import (
     block_dir,
     chain_blocks,
     matched_prefix_blocks,
+    rope_json,
 )
 
 LAYOUT = CacheLayout(
@@ -78,6 +81,38 @@ def test_different_tp_size_does_not_collide():
     ids = list(range(32))
     assert LAYOUT.fingerprint != other.fingerprint
     assert chain_blocks(ids, LAYOUT)[0][0] != chain_blocks(ids, other)[0][0]
+
+
+def test_different_rope_scaling_does_not_collide():
+    """A YaRN-extended model stores different keys for the same tokens."""
+    base = SimpleNamespace(rope_theta=1000000.0, rope_scaling=None)
+    yarn = SimpleNamespace(rope_theta=1000000.0,
+                           rope_scaling={"type": "yarn", "factor": 4.0,
+                                         "original_max_position_embeddings": 32768})
+    a = replace(LAYOUT, rope=rope_json(base))
+    b = replace(LAYOUT, rope=rope_json(yarn))
+    ids = list(range(32))
+    assert a.fingerprint != b.fingerprint
+    assert chain_blocks(ids, a)[0][0] != chain_blocks(ids, b)[0][0]
+
+
+def test_rope_json_reads_old_and_new_transformers_configs():
+    old = SimpleNamespace(rope_theta=10000.0, rope_scaling={"factor": 2.0, "type": "linear"})
+    new = SimpleNamespace(rope_parameters={"type": "linear", "factor": 2.0,
+                                           "rope_theta": 10000.0})
+    plain = SimpleNamespace()
+    assert rope_json(old) != rope_json(plain)
+    assert rope_json(new) != rope_json(plain)
+    # Key order inside the config must not change the cache key.
+    reordered = SimpleNamespace(rope_theta=10000.0,
+                                rope_scaling={"type": "linear", "factor": 2.0})
+    assert rope_json(old) == rope_json(reordered)
+
+
+def test_different_max_model_len_does_not_collide():
+    a = replace(LAYOUT, max_model_len=32768)
+    b = replace(LAYOUT, max_model_len=131072)
+    assert a.fingerprint != b.fingerprint
 
 
 def test_partial_tail_is_not_cached():

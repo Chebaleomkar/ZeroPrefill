@@ -30,6 +30,12 @@ class CacheLayout:
     # Each tensor-parallel rank holds a different slice of the KV heads, so a
     # cache written at one TP size cannot be read back at another.
     tp_size: int = 1
+    # Keys are stored after RoPE is applied, so the RoPE config (theta and any
+    # scaling such as YaRN) changes their bytes. Canonical JSON from rope_json().
+    rope: str = ""
+    # Dynamic RoPE scaling depends on the context-length setting, and a cache
+    # written under one max_model_len is not known to be valid under another.
+    max_model_len: int = 0
 
     @property
     def fingerprint(self) -> str:
@@ -40,6 +46,8 @@ class CacheLayout:
                 "kv_dtype": self.kv_dtype,
                 "block_size": self.block_size,
                 "tp_size": self.tp_size,
+                "rope": self.rope,
+                "max_model_len": self.max_model_len,
             },
             sort_keys=True,
             separators=(",", ":"),
@@ -50,6 +58,20 @@ class CacheLayout:
     def root(self) -> str:
         """Parent hash for block 0. Severs the chain across models/dtypes."""
         return self.fingerprint
+
+
+ROPE_KEYS = ("rope_theta", "rope_scaling", "rope_parameters")
+
+
+def rope_json(hf_config) -> str:
+    """Canonical JSON of the RoPE settings on a Hugging Face config.
+
+    Older transformers expose rope_theta and rope_scaling; newer ones fold both
+    into rope_parameters. Read every name so either form changes the key.
+    """
+    found = {k: getattr(hf_config, k) for k in ROPE_KEYS
+             if getattr(hf_config, k, None) is not None}
+    return json.dumps(found, sort_keys=True, separators=(",", ":"), default=str)
 
 
 def _block_digest(parent: str, token_ids: list[int]) -> str:
