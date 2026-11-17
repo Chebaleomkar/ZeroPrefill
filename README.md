@@ -223,6 +223,7 @@ results/              raw outputs of every run (no KV caches)
 tests/                hashing, segments, store path, end-of-session save
 scripts/              phase 1: local GTX 1650 runs under WSL2
 docs/
+  WRITEUP.md          the write-up: results, LMCache comparison, bugs found
   RESEARCH.md         plan, metrics, use cases, limits, dated status log
   phase1-handoff.md   phase 1 record: local runs, the five connector bugs
 ```
