@@ -1,42 +1,75 @@
 # ZeroPrefill
 
-**TL;DR.** A vLLM KV connector plugin (vLLM itself unpatched) that saves a session's KV cache to disk and restores it into a fresh server, so the model skips re-prefill.
-On Qwen2.5-14B-Instruct-AWQ on 2x T4: a 16,031-token prompt went from 102.6 s to **1.60 s** time to first token (64x) with identical output, and a real 26,788-token coding-agent session resumed on a different machine went from 260.7 s to **75.7 s / 73.7 s** (3.5x) with 46% less GPU energy.
-Against LMCache's multi-process mode on the same machine, first-token time after restore was 8.55 s / 3.04 s vs 14.96 s / 8.01 s, both with correct output ([comparison](#comparison-with-lmcache)).
-The mechanism is not new ([related work](#related-work)); the contribution is the measurement. Read the [caveats](#results-so-far) before quoting the numbers.
+**Close the laptop. Keep the context.**
 
-Save an LLM session's KV cache to disk when it goes idle, and load it straight
-back into GPU memory when the user returns, so the model does not have to
-re-read (prefill) the whole conversation.
+[![ZeroPrefill: a 16,031-token prompt goes from 102.6 s to 1.60 s time to first token. Click to watch the 22-second video.](docs/media/zeroprefill.jpg)](docs/media/zeroprefill.mp4)
 
-**The motivation.** A developer works with a coding agent all day, closes the
-laptop at night and comes back 8 to 10 hours later. Providers keep prompt caches
-for minutes to an hour, so the entire conversation is prefilled again from
-scratch. That costs the user money and costs GPU time, power and water for work
-that was already done the day before.
+<sub>▶ 22 seconds. Click the image to watch.</sub>
 
-## Results so far
+Next morning, your coding agent re-reads everything.
 
-All on Kaggle's free 2x NVIDIA T4, Qwen2.5-14B-Instruct-AWQ, tensor parallel 2,
-vLLM 0.30.0. Raw outputs are in [`results/`](results/).
+You work with an agent all day, close the laptop at night and come back 8 to
+10 hours later. Providers keep prompt caches for minutes to an hour, so the
+whole conversation is prefilled again from scratch. You pay for it in money
+and wait time, and the GPU pays for it in power and water, for work that was
+already done the day before.
 
-**Smoke test: one 16,031-token prompt, save, kill the server, restore in a fresh one**
+**ZeroPrefill** is a vLLM KV connector plugin (vLLM itself is unpatched).
+
+- Save the KV cache to disk when a session goes idle.
+- Load it back into a fresh server, even on another machine.
+- Skip the prefill.
+
+Against LMCache's multi-process mode on the same machine, first-token time
+after restore was 8.55 s / 3.04 s vs 14.96 s / 8.01 s, both with correct output
+([comparison](#comparison-with-lmcache)).
+
+The mechanism is not new ([related work](#related-work)). The contribution is
+the measurement. Read [the caveats](#read-before-quoting) before quoting the
+numbers.
+
+All results are on Kaggle's free 2x NVIDIA T4, Qwen2.5-14B-Instruct-AWQ,
+tensor parallel 2, vLLM 0.30.0. Raw outputs for every run are in
+[`results/`](results/).
+
+## 64x faster first token
+
+One server prefills a 16,031-token prompt and saves its KV cache to disk, then
+it is killed. The same prompt then goes to a fresh server: cold computes it the
+normal way, warm restores the cache from disk. This is the real log line from
+the warm server:
+
+```
+[ZP] ZP_HIT tokens=16016 of 16031 (99.9%)
+```
 
 | | cold (normal prefill) | warm (KV restored from disk) |
 |---|---|---|
 | time to first token | 102.6 s | **1.60 s** (64x) |
-| GPU energy for the request | 14,349 J | **851 J** (17x less) |
 | tokens restored | 0 | 16,016 of 16,031 (99.9%) |
+
+Raw outputs: [`results/smoke/`](results/smoke/).
+
+## Same answer, word for word, with 17x less energy
+
+Both servers return the same 60-token answer, byte for byte: *"This scheduler
+code manages the Key-Value (KV) cache for deep learning models…"*
+
+| | cold | warm |
+|---|---|---|
+| GPU energy for the request | 14,349 J | **851 J** (17x less) |
 | output | reference | **identical** |
 
-**Real agent session resumed on a different machine (Day 1 / Day 2)**
+## A real agent session, resumed on another machine
 
-Day 1: the [pi](https://www.npmjs.com/package/@earendil-works/pi-coding-agent)
+**Day 1:** the [pi](https://www.npmjs.com/package/@earendil-works/pi-coding-agent)
 coding agent works on [psf/requests](https://github.com/psf/requests) v2.32.3
 for 7 tasks, reaching 23,699 tokens of context. Its KV cache (4.6 GiB) is saved
-as the Kaggle run's output. Day 2: a new Kaggle machine attaches that output,
-forks the same pi session twice and sends the same next message, once with the
-cache restored (warm) and once without (cold). Each arm ran twice.
+as the Kaggle run's output.
+
+**Day 2:** a new Kaggle machine attaches that output, forks the same pi session
+twice and sends the same next message, once with the cache restored (warm) and
+once without (cold). Each arm ran twice.
 
 | | cold | warm |
 |---|---|---|
@@ -45,29 +78,14 @@ cache restored (warm) and once without (cold). Each arm ran twice.
 | time to first token | 260.7 s / 260.7 s | **75.7 s / 73.7 s** (3.5x) |
 | GPU energy, first reply | 61.8 / 62.1 kJ | **33.1 / 33.3 kJ** (46% less) |
 
-Read these with the caveats:
+Raw outputs: [`results/day1/`](results/day1/), [`results/day2/`](results/day2/).
 
-- **Why 3.5x and not 64x.** Only tokens the model *read* are saved, not the
-  ones it *wrote*. Day 1's last answer (~3k tokens) was recomputed on Day 2,
-  and that is most of the remaining 75 s. The connector now saves at session
-  end (see below); Day 2 has not been re-run with it yet.
-- **Fetch cost.** Copying the 4.6 GiB cache from Kaggle's storage to local disk
-  took 73.7 s, which is not included in the warm time.
-- **Output match.** Each arm reproduces itself exactly. Cold and warm agree for
-  the first ~1,200 tokens of the reply, then split at a near-tie word. Day 1
-  built the KV over 8 turns while cold builds it in one pass, so floating-point
-  rounding differs. Corrupt KV would diverge from the first token. The smoke
-  test, where both sides compute the KV the same way, matched exactly.
-- **Weak agent behaviour.** Qwen2.5-14B-AWQ only used tools on the first task
-  and answered the rest without reading files. The session is a real 27k-token
-  multi-turn conversation, but not yet a realistic codebase read.
+## It also saves the model's own answer
 
-**Saving the last answer (2026-11-17)**
-
-Turn 1 sends the smoke prompt with a request for a detailed answer; the
-connector saves the prompt during prefill and the 871-token answer when the
-request ends. Turn 2, in a fresh server, sends prompt + answer + a new question
-(16,936 tokens). Raw outputs: [`results/answer/`](results/answer/).
+Added 2026-11-17. Turn 1 sends the smoke prompt with a request for a detailed
+answer. The connector saves the prompt during prefill and the 871-token answer
+when the request ends. Turn 2, in a fresh server, sends prompt + answer + a new
+question (16,936 tokens). Raw outputs: [`results/answer/`](results/answer/).
 
 | | cold | warm |
 |---|---|---|
@@ -76,12 +94,32 @@ request ends. Turn 2, in a fresh server, sends prompt + answer + a new question
 | output | reference | **identical** |
 
 So 1,024 tokens of the previous answer were reused. The answer's last 512
-tokens were saved but not reused (partial last segment, see Known issues).
-Warm is 14.2 s here against 1.60 s in the smoke test; 552 tokens are
-recomputed instead of 15, but that does not obviously account for the
-difference and it is not yet explained.
+tokens were saved but not reused (partial last segment, see
+[Known issues](#known-issues)). Warm is 14.2 s here against 1.60 s in the
+smoke test. 552 tokens are recomputed instead of 15, but that does not
+obviously account for the difference, and it is not yet explained.
 
 Full log with dates and reasoning: [`docs/RESEARCH.md`](docs/RESEARCH.md) §6.
+
+## Read before quoting
+
+- **Why 3.5x and not 64x.** Only tokens the model *read* were saved, not the
+  ones it *wrote*. Day 1's last answer (~3k tokens) was recomputed on Day 2,
+  and that is most of the remaining 75 s. The connector now saves the answer
+  too (above), but Day 2 has not been re-run with it yet.
+- **Fetch cost.** Copying the 4.6 GiB cache from Kaggle's storage to local disk
+  took 73.7 s, which is not included in the warm time.
+- **Output match.** Each arm reproduces itself exactly. On Day 2, cold and warm
+  agree for the first ~1,200 tokens of the reply, then split at a near-tie
+  word. Day 1 built the KV over 8 turns while cold builds it in one pass, so
+  floating-point rounding differs. Corrupt KV would diverge from the first
+  token. The smoke test, where both sides compute the KV the same way, matched
+  exactly.
+- **Weak agent behaviour.** Qwen2.5-14B-AWQ only used tools on the first task
+  and answered the rest without reading files. The session is a real 27k-token
+  multi-turn conversation, but not yet a realistic codebase read.
+- **The video speeds up time.** Both timers in it run on one clock, sped up
+  34x. The numbers on screen are the measured ones above.
 
 ## Comparison with LMCache
 
@@ -223,6 +261,7 @@ results/              raw outputs of every run (no KV caches)
 tests/                hashing, segments, store path, end-of-session save
 scripts/              phase 1: local GTX 1650 runs under WSL2
 docs/
+  media/              the 22-second video and its poster
   WRITEUP.md          the write-up: results, LMCache comparison, bugs found
   RESEARCH.md         plan, metrics, use cases, limits, dated status log
   phase1-handoff.md   phase 1 record: local runs, the five connector bugs
