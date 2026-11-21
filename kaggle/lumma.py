@@ -10,7 +10,8 @@ size 90 and fp16 on a model trained in bf16 (T4 has no bf16).
 
   1. fresh plain vLLM server -> a short sanity question, then the long prompt
      twice                                                              (cold)
-     fp16 first; float32 if fp16 fails to start or does not answer "Paris"
+     fp16 first; float32 if fp16 fails to start, does not answer "Paris" or
+     answers the long prompt with nothing
   2. connector on, empty cache -> long prompt, KV written to disk      (save)
   3. fresh server, connector on -> same prompt restored from disk       (warm)
 
@@ -97,6 +98,12 @@ def cold_run(messages, res):
             if "paris" not in sanity["text"].lower():
                 continue
             res["cold1"] = lib.chat(messages)
+            if not res["cold1"]["text"].strip():
+                # fp16 can overflow on a long prompt in a model trained in bf16
+                # while short prompts still answer.
+                res[f"long_empty_{dtype}"] = res.pop("cold1")["usage"]
+                lib.log(f"{dtype}: empty answer to the long prompt")
+                continue
             res["cold2"] = lib.chat(messages)
         except Exception as e:  # the server crashed or returned an error mid-request
             res[f"request_failed_{dtype}"] = repr(e)[-3000:]
