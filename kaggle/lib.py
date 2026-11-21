@@ -15,6 +15,8 @@ import urllib.request
 MODEL = os.environ.get("ZP_MODEL", "Qwen/Qwen2.5-14B-Instruct-AWQ")
 SERVED_NAME = "zp-model"
 TP = int(os.environ.get("ZP_TP", "2"))
+QUANT = os.environ.get("ZP_QUANT", "awq")  # "none" serves unquantized weights
+DTYPE = os.environ.get("ZP_DTYPE", "half")  # T4 has no bf16
 PORT = 8001        # vLLM
 PROXY_PORT = 8000  # pi talks to the logging proxy, which forwards to vLLM
 # Qwen2.5 is natively 32k. Longer windows use YaRN rope scaling.
@@ -93,36 +95,40 @@ def pi(args, cwd, timeout):
 
 # ---------------------------------------------------------------- server
 
-def start_server(tag, cache_root=None, prefix_caching=True, kv_transfer=None, extra_env=None):
+def start_server(tag, cache_root=None, prefix_caching=True, kv_transfer=None, extra_env=None,
+                 extra_args=()):
     """cache_root=None serves plain vLLM, the no-ZeroPrefill baseline.
 
     kv_transfer replaces the ZeroPrefill connector with another --kv-transfer-config
-    (the LMCache baseline); extra_env is added to the server's environment.
+    (the LMCache baseline); extra_env is added to the server's environment and
+    extra_args to its command line.
     """
     global MAX_LEN
     try:
-        return _start_server(tag, cache_root, prefix_caching, kv_transfer, extra_env)
+        return _start_server(tag, cache_root, prefix_caching, kv_transfer, extra_env, extra_args)
     except RuntimeError:
         if MAX_LEN <= NATIVE_LEN:
             raise
         log(f"server failed at max_len {MAX_LEN} with YaRN; retrying at {NATIVE_LEN}")
         MAX_LEN = NATIVE_LEN
-        return _start_server(tag, cache_root, prefix_caching, kv_transfer, extra_env)
+        return _start_server(tag, cache_root, prefix_caching, kv_transfer, extra_env, extra_args)
 
 
-def _start_server(tag, cache_root, prefix_caching, kv_transfer, extra_env):
+def _start_server(tag, cache_root, prefix_caching, kv_transfer, extra_env, extra_args):
     assert not (cache_root and kv_transfer), "one KV connector per server"
     cmd = [sys.executable, "-m", "vllm.entrypoints.openai.api_server",
            "--model", MODEL, "--served-model-name", SERVED_NAME,
            "--host", "127.0.0.1", "--port", str(PORT),
-           "--dtype", "half",  # T4 has no bf16
-           "--quantization", "awq",
+           "--dtype", DTYPE,
            "--tensor-parallel-size", str(TP),
            "--max-model-len", str(MAX_LEN),
            "--gpu-memory-utilization", "0.90",
            "--max-num-seqs", "4",
            "--enforce-eager",  # same for both arms; drop only after A==B holds
-           "--enable-auto-tool-choice", "--tool-call-parser", "hermes"]
+           "--enable-auto-tool-choice", "--tool-call-parser", "hermes",
+           *extra_args]
+    if QUANT != "none":
+        cmd += ["--quantization", QUANT]
     if MAX_LEN > NATIVE_LEN:
         cmd += ["--hf-overrides", json.dumps({"rope_parameters": {
             "rope_type": "yarn", "factor": MAX_LEN / NATIVE_LEN,
@@ -135,7 +141,7 @@ def _start_server(tag, cache_root, prefix_caching, kv_transfer, extra_env):
             "kv_role": "kv_both",
             "kv_connector_module_path": "zeroprefill.connector",
             "kv_connector_extra_config": {"zeroprefill": {
-                "cache_root": cache_root, "quantization": "awq"}}})]
+                "cache_root": cache_root, "quantization": QUANT}}})]
     if kv_transfer:
         cmd += ["--kv-transfer-config", json.dumps(kv_transfer)]
     env = {**os.environ,
@@ -299,7 +305,7 @@ def build_messages():
     import glob
     import vllm
     from transformers import AutoTokenizer
-    tok = AutoTokenizer.from_pretrained(MODEL)
+    tok = AutoTokenizer.from_pretrained(MODEL, trust_remote_code=True)
     root = os.path.dirname(vllm.__file__)
     files = sorted(glob.glob(f"{root}/v1/core/**/*.py", recursive=True))
     body, n = [], 0

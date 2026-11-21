@@ -225,6 +225,7 @@ CLI logged in (`pip install kaggle`, `python -m kaggle auth login`).
 python kaggle/push.py smoke                                 # ~25 min
 python kaggle/push.py day1                                  # ~40 min
 python kaggle/push.py day2 <kaggle-user>/zeroprefill-day1   # ~60 min
+python kaggle/push.py lumma                                 # Lumma-0.6B, not yet run
 python -m kaggle kernels status <kaggle-user>/zeroprefill-<run>
 python -m kaggle kernels output <kaggle-user>/zeroprefill-<run> -p runs/<run>
 ```
@@ -252,6 +253,8 @@ kaggle/               the 2x T4 experiments
   lmcache-smoke.py    LMCache in-process connector baseline
   lmcache-mp.py       LMCache multi-process mode baseline
   h2h.py              ZeroPrefill vs LMCache MP in one session
+  lumma.py            smoke test on Lumma-0.6B via vLLM's Transformers backend
+  lumma_vllm.py       vLLM plugin: Lumma's factorized output head
   lmc.py              LMCache MP server helpers
   day1.py             build a real pi session, save its KV cache
   day2.py             resume on a fresh machine, warm vs cold
