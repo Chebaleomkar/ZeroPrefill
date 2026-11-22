@@ -29,7 +29,7 @@ the measurement. Read [the caveats](#read-before-quoting) before quoting the
 numbers.
 
 All results are on Kaggle's free 2x NVIDIA T4, Qwen2.5-14B-Instruct-AWQ,
-tensor parallel 2, vLLM 0.30.0. Raw outputs for every run are in
+tensor parallel 2, vLLM 0.30.0, except the [Lumma-0.6B run](#lumma-06b-a-model-vllm-has-no-code-for). Raw outputs for every run are in
 [`results/`](results/).
 
 ## 64x faster first token
@@ -172,6 +172,38 @@ Raw outputs: [`results/lmcache-mp/`](results/lmcache-mp/) (MP mode alone,
 including a run that kept the LMCache server alive across the vLLM restart:
 12.0 s) and [`results/h2h/`](results/h2h/).
 
+## Lumma-0.6B: a model vLLM has no code for
+
+[FrontiersMind/Lumma-0.6B-Instruct](https://huggingface.co/FrontiersMind/Lumma-0.6B-Instruct)
+is a custom architecture (`trust_remote_code`) with no native vLLM model. Its
+embeddings are factorized (vocab x 512), so its output head first projects the
+1440-wide hidden state down to 512 (`lm_head_proj`). vLLM's generic
+Transformers backend has no slot for that layer and cannot load the model.
+[`kaggle/lumma_vllm.py`](kaggle/lumma_vllm.py) is a small vLLM plugin that adds
+it. One T4, fp16, TP 1. Raw outputs: [`results/lumma/`](results/lumma/).
+
+| | cold (normal prefill) | warm (KV restored from disk) |
+|---|---|---|
+| prompt | 4,053 tokens | 4,053 tokens |
+| tokens restored | 0 | 4,048 (99.9%) |
+| time to first token | 2.85 s | **0.38 s** (7.5x) |
+| GPU energy for the request | 422 J | **206 J** (51% less) |
+| output (64 tokens) | reference | **identical** |
+
+- The restore took 0.16 s. The cache is 419 MiB, at most 104 KiB per saved
+  token (Qwen2.5-14B: 192 KB).
+- A 0.6B model prefills fast, so the time win is far smaller than the 14B's 64x.
+- **Under vLLM, Lumma answers 6k-, 8k- and 11k-token prompts with a single
+  end-of-text token**, in fp16 and float32 alike, while a short question and
+  the 4k prompt get real answers. The run therefore steps the prompt down from
+  11k and uses the longest one the model answers. Whether this is the model or
+  the vLLM serving path is not yet known; the next check is the same prompts
+  through Lumma's own Hugging Face code.
+- Lumma caches one pre-RoPE tensor per token and uses it as both key and value.
+  Through vLLM's Transformers backend it is stored as separate keys and values
+  like any other model, so this run does not get that halving. Native vLLM
+  support for shared KV would.
+
 ## How it works
 
 A vLLM `KVConnectorBase_V1` plugin, loaded with `kv_connector_module_path`, so
@@ -225,6 +257,7 @@ CLI logged in (`pip install kaggle`, `python -m kaggle auth login`).
 python kaggle/push.py smoke                                 # ~25 min
 python kaggle/push.py day1                                  # ~40 min
 python kaggle/push.py day2 <kaggle-user>/zeroprefill-day1   # ~60 min
+python kaggle/push.py lumma                                 # Lumma-0.6B, passed (results/lumma)
 python -m kaggle kernels status <kaggle-user>/zeroprefill-<run>
 python -m kaggle kernels output <kaggle-user>/zeroprefill-<run> -p runs/<run>
 ```
@@ -252,6 +285,8 @@ kaggle/               the 2x T4 experiments
   lmcache-smoke.py    LMCache in-process connector baseline
   lmcache-mp.py       LMCache multi-process mode baseline
   h2h.py              ZeroPrefill vs LMCache MP in one session
+  lumma.py            smoke test on Lumma-0.6B via vLLM's Transformers backend
+  lumma_vllm.py       vLLM plugin: Lumma's factorized output head
   lmc.py              LMCache MP server helpers
   day1.py             build a real pi session, save its KV cache
   day2.py             resume on a fresh machine, warm vs cold
