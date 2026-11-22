@@ -225,7 +225,7 @@ CLI logged in (`pip install kaggle`, `python -m kaggle auth login`).
 python kaggle/push.py smoke                                 # ~25 min
 python kaggle/push.py day1                                  # ~40 min
 python kaggle/push.py day2 <kaggle-user>/zeroprefill-day1   # ~60 min
-python kaggle/push.py lumma                                 # Lumma-0.6B, not yet run
+python kaggle/push.py lumma                                 # Lumma-0.6B, passed (results/lumma)
 python -m kaggle kernels status <kaggle-user>/zeroprefill-<run>
 python -m kaggle kernels output <kaggle-user>/zeroprefill-<run> -p runs/<run>
 ```

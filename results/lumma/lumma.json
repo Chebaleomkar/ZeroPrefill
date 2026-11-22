@@ -1,0 +1,127 @@
+{
+  "model": "FrontiersMind/Lumma-0.6B-Instruct",
+  "passed": true,
+  "sanity_half": "Paris",
+  "long_empty_half": {
+    "11000": {
+      "completion_tokens": 1,
+      "prompt_tokens": 11053,
+      "total_tokens": 11054,
+      "completion_tokens_details": null,
+      "prompt_tokens_details": null
+    },
+    "8000": {
+      "completion_tokens": 1,
+      "prompt_tokens": 8053,
+      "total_tokens": 8054,
+      "completion_tokens_details": null,
+      "prompt_tokens_details": null
+    },
+    "6000": {
+      "completion_tokens": 1,
+      "prompt_tokens": 6053,
+      "total_tokens": 6054,
+      "completion_tokens_details": null,
+      "prompt_tokens_details": null
+    }
+  },
+  "cold1": {
+    "text": "This scheduler code implements a **block caching mechanism** that manages **prefix-cache-reused blocks** across a **KV cache**. It ensures that **external consumers** (e.g., gateway applications) can access **reused blocks** (i.e., blocks that have been cached multiple times) without needing to re",
+    "ttft_s": 2.8489060401916504,
+    "total_s": 6.13088059425354,
+    "energy_j": 421.579,
+    "usage": {
+      "completion_tokens": 64,
+      "prompt_tokens": 4053,
+      "total_tokens": 4117,
+      "completion_tokens_details": null,
+      "prompt_tokens_details": null
+    },
+    "server": {
+      "vllm:prefix_cache_queries_total": 0.0,
+      "vllm:prefix_cache_hits_total": 0.0,
+      "vllm:prompt_tokens_total": 4053.0,
+      "vllm:request_prefill_time_seconds_sum": 2.8257136669999454
+    }
+  },
+  "prompt_target_tokens": 4000,
+  "cold2": {
+    "text": "This scheduler code implements a **block caching mechanism** that manages **prefix-cache-reused blocks** across a **KV cache**. It ensures that **external consumers** (e.g., gateway applications) can access **reused blocks** (i.e., blocks that have been cached multiple times) without needing to re",
+    "ttft_s": 2.8581058979034424,
+    "total_s": 6.0644049644470215,
+    "energy_j": 417.298,
+    "usage": {
+      "completion_tokens": 64,
+      "prompt_tokens": 4053,
+      "total_tokens": 4117,
+      "completion_tokens_details": null,
+      "prompt_tokens_details": null
+    },
+    "server": {
+      "vllm:prefix_cache_queries_total": 0.0,
+      "vllm:prefix_cache_hits_total": 0.0,
+      "vllm:prompt_tokens_total": 4053.0,
+      "vllm:request_prefill_time_seconds_sum": 2.833554491999962
+    }
+  },
+  "dtype": "half",
+  "resolved_model": [
+    "(APIServer pid=37) INFO 11-22 06:14:18 [model.py:692] Resolved architecture: LummaForCausalLM",
+    "(EngineCore pid=104) INFO 11-22 06:14:41 [base.py:117] Using Transformers modeling backend."
+  ],
+  "attention_backend": [
+    "(EngineCore pid=104) INFO 11-22 06:14:41 [base.py:117] Using Transformers modeling backend.",
+    "(EngineCore pid=104) INFO 11-22 06:14:47 [cuda.py:538] Using TRITON_ATTN attention backend out of potential backends: ['TRITON_ATTN', 'FLEX_ATTENTION']."
+  ],
+  "save": {
+    "text": "This scheduler code implements a **block caching mechanism** that manages **prefix-cache-reused blocks** across a **KV cache**. It ensures that **external consumers** (e.g., gateway applications) can access **reused blocks** (i.e., blocks that have been cached multiple times) without needing to re",
+    "ttft_s": 3.390659809112549,
+    "total_s": 7.72196364402771,
+    "energy_j": 478.437,
+    "usage": {
+      "completion_tokens": 64,
+      "prompt_tokens": 4053,
+      "total_tokens": 4117,
+      "completion_tokens_details": null,
+      "prompt_tokens_details": null
+    },
+    "server": {
+      "vllm:prefix_cache_queries_total": 4053.0,
+      "vllm:prefix_cache_hits_total": 0.0,
+      "vllm:prompt_tokens_total": 4053.0,
+      "vllm:request_prefill_time_seconds_sum": 3.297436446000006
+    }
+  },
+  "cache_mib": 419.2534637451172,
+  "cache_files": 180,
+  "warm": {
+    "text": "This scheduler code implements a **block caching mechanism** that manages **prefix-cache-reused blocks** across a **KV cache**. It ensures that **external consumers** (e.g., gateway applications) can access **reused blocks** (i.e., blocks that have been cached multiple times) without needing to re",
+    "ttft_s": 0.3757660388946533,
+    "total_s": 3.590477466583252,
+    "energy_j": 205.627,
+    "usage": {
+      "completion_tokens": 64,
+      "prompt_tokens": 4053,
+      "total_tokens": 4117,
+      "completion_tokens_details": null,
+      "prompt_tokens_details": null
+    },
+    "server": {
+      "vllm:prefix_cache_queries_total": 4053.0,
+      "vllm:prefix_cache_hits_total": 0.0,
+      "vllm:prompt_tokens_total": 4053.0,
+      "vllm:request_prefill_time_seconds_sum": 0.2812538619999714
+    }
+  },
+  "prompt_tokens": 4053,
+  "warm_hit_tokens": 4048,
+  "warm_restored_tokens": 4048,
+  "warm_restore_s": [
+    0.158
+  ],
+  "cache_kib_per_saved_token": 104.278733756376,
+  "zp_warnings": [],
+  "cold_deterministic": true,
+  "warm_equals_cold": true,
+  "save_equals_cold": true
+}

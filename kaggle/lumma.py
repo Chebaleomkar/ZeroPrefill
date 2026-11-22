@@ -10,8 +10,10 @@ size 90 and fp16 on a model trained in bf16 (T4 has no bf16).
 
   1. fresh plain vLLM server -> a short sanity question, then the long prompt
      twice                                                              (cold)
-     fp16 first; float32 if fp16 fails to start, does not answer "Paris" or
-     answers the long prompt with nothing
+     fp16 first; float32 if fp16 fails to start or does not answer "Paris".
+     The long prompt is tried at PROMPT_TOKENS in turn, longest first, and the
+     longest one Lumma answers with text is used for the rest of the run: the
+     first runs answered 11k tokens with a bare EOS in both fp16 and float32
   2. connector on, empty cache -> long prompt, KV written to disk      (save)
   3. fresh server, connector on -> same prompt restored from disk       (warm)
 
@@ -32,7 +34,6 @@ os.environ.update({
     "ZP_TP": "1",
     "ZP_QUANT": "none",
     "ZP_MAX_LEN": "12288",       # Lumma's max_position_embeddings
-    "ZP_SMOKE_TOKENS": "11000",  # leaves room for the chat template and answer
 })
 
 import lib  # noqa: E402  reads the settings above at import
@@ -40,6 +41,7 @@ import lib  # noqa: E402  reads the settings above at import
 CACHE = "/root/zp-cache"
 LUMMA_ARGS = ("--trust-remote-code",)
 DTYPES = ("half", "float32")
+PROMPT_TOKENS = (11000, 8000, 6000, 4000, 2000)  # 11000 leaves room for the template and answer
 SANITY = [{"role": "user", "content": "What is the capital of France? Answer in one sentence."}]
 
 
@@ -78,8 +80,11 @@ def answer_tokens(run):
     return (run.get("usage") or {}).get("completion_tokens")
 
 
-def cold_run(messages, res):
-    """Serve plain vLLM at the first dtype that starts and answers."""
+def cold_run(res):
+    """Serve plain vLLM at the first dtype that starts and answers.
+
+    Returns the messages of the longest prompt answered with text, or None.
+    """
     for dtype in DTYPES:
         lib.DTYPE = dtype
         tag = f"cold_{dtype}"
@@ -97,12 +102,19 @@ def cold_run(messages, res):
             # input, and then warm == cold holds whatever KV was restored.
             if "paris" not in sanity["text"].lower():
                 continue
-            res["cold1"] = lib.chat(messages)
-            if not res["cold1"]["text"].strip():
-                # fp16 can overflow on a long prompt in a model trained in bf16
-                # while short prompts still answer.
-                res[f"long_empty_{dtype}"] = res.pop("cold1")["usage"]
-                lib.log(f"{dtype}: empty answer to the long prompt")
+            messages = None
+            for n in PROMPT_TOKENS:
+                lib.SMOKE_TOKENS = n
+                candidate = lib.build_messages()
+                first = lib.chat(candidate)
+                if first["text"].strip():
+                    messages, res["cold1"] = candidate, first
+                    res["prompt_target_tokens"] = n
+                    lib.log(f"{dtype}: answered the {n}-token prompt: {first['text'][:80]!r}")
+                    break
+                res.setdefault(f"long_empty_{dtype}", {})[n] = first["usage"]
+                lib.log(f"{dtype}: empty answer to the {n}-token prompt")
+            if messages is None:
                 continue
             res["cold2"] = lib.chat(messages)
         except Exception as e:  # the server crashed or returned an error mid-request
@@ -116,8 +128,8 @@ def cold_run(messages, res):
                                  + lib.grep(f"{lib.OUT}/server_{tag}.log", "Transformers modeling backend")][-3:]
         res["attention_backend"] = [line for line in lib.grep(f"{lib.OUT}/server_{tag}.log", "Using ")
                                     if "backend" in line.lower()][-3:]
-        return True
-    return False
+        return messages
+    return None
 
 
 def connector_run(messages, res):
@@ -142,13 +154,14 @@ def main():
     lib.sh("nvidia-smi")
     lib.install_vllm()
     install_plugin()
-    messages = lib.build_messages()
     shutil.rmtree(CACHE, ignore_errors=True)
     res = {"model": lib.MODEL, "passed": False}
 
-    if not cold_run(messages, res):
+    messages = cold_run(res)
+    if messages is None:
         lib.save_json("lumma.json", res)
-        lib.log("Lumma did not serve at any dtype; see start_failed_*, request_failed_* and sanity_* in lumma.json")
+        lib.log("no dtype gave a text answer to any prompt length; see start_failed_*, "
+                "request_failed_*, sanity_* and long_empty_* in lumma.json")
         return
     lib.save_json("lumma.json", res)
 
